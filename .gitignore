@@ -1,4 +1,4 @@
-target/
-in/
-out/
+/target/
+/in/
+/out/
 .DS_Store
