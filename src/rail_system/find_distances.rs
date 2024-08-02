@@ -63,7 +63,7 @@ pub fn find_distances(
     // We subtract one from the distance for each end of the connection that is a switch node,
     // so that the distance to/from a switch node is less than the distance to/from the other
     // switch nodes on the same switch.
-    // In this case the starting node is a station node, so we subtract either 0 or 1.
+    // In this case the "from" node is a station node, so we subtract either 0 or 1, depending on whether the "to" node is a station or a switch.
     let subtraction_distance = if is_switch_node(to_node_id, num_stations) {1} else {0};
 
     // Link the "from" station node to the node that was found to be connected to it,
@@ -97,7 +97,7 @@ pub fn find_distances(
         // We subtract one from the distance for each end of the connection that is a switch node,
         // so that the distance to/from a switch node is less than the distance to/from the other
         // switch nodes on the same switch.
-        // In this case the "from" node is a switch node, so we subtract either 1 or 2.
+        // In this case the "from" node is a switch node, so we subtract either 1 or 2, depending on whether the "to" node is a station or a switch.
         let subtraction_distance = if is_switch_node(to_node_id, num_stations) {2} else {1};
 
         // Link the "from" switch node to the node that was found to be connected to it,
