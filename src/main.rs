@@ -46,10 +46,10 @@ fn main() {
      block_x_str,
      block_z_str,
      world_dir,
+     functions_out_path,
+     diagnostics_out_path,
      ties_path,
      weights_path,
-     diagnostics_out_path,
-     functions_out_path,
     ] => {
 
       let starting_chunk_coords = block_coords_to_chunk_coords((
@@ -160,7 +160,7 @@ fn main() {
     },
     _ => {
       let command = &args[0];
-      exit!("Usage: {} <block_x> <block_z> <world_dir> <ties_path> <weights_path> <diagnostics_out_path> <functions_out_path>" , command);
+      exit!("Usage: {} <block_x> <block_z> <world_dir> <functions_out_path> <diagnostics_out_path> <ties_path> <weights_path>" , command);
     }
   }
 }

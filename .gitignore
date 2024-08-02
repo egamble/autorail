@@ -1,4 +1,8 @@
+.DS_Store
 /target/
 /in/
 /out/
-.DS_Store
+/diagnostics/
+/rr/
+ties.tsv
+weights.tsv
