@@ -179,13 +179,11 @@ fn main() {
 }
 
 
-const STARTING_PARAM_INDEX: usize = 3;
-
 fn param_from_args(args: &Vec<String>, param_prefix: &str) -> Option<String> {
   let args_len = args.len();
 
   for (i, param) in args.iter().enumerate() {
-    if i < STARTING_PARAM_INDEX {
+    if i < 3 {
       continue;
     }
     
@@ -204,8 +202,6 @@ fn param_from_args(args: &Vec<String>, param_prefix: &str) -> Option<String> {
 }
 
 
-const MIN_REQUIRED_ARGS: usize = 5;
-
 fn parse_args(args: &Vec<String>) -> (
   String, // block_x_str
   String, // block_z_str
@@ -215,8 +211,7 @@ fn parse_args(args: &Vec<String>) -> (
   Option<String>, // ties_path_option
   Option<String>  // weights_path_option
 ) {
-  if args.len() >= MIN_REQUIRED_ARGS {
-
+  if args.len() >= 3 {
     let block_x_str = &args[1];
     let block_z_str = &args[2];
     
