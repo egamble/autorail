@@ -18,15 +18,7 @@ use crate::common::{
   block_coords_to_chunk_coords
 };
 
-use crate::diagnostics::{
-  write_stations,
-  write_station_signs,
-  write_switches,
-  write_switches_nearest_station,
-  write_distances,
-  write_rail_blocks,
-  write_chunks
-};
+use crate::diagnostics::{write_diagnostics};
 
 use crate::in_files::{
   build_ties_map,
@@ -144,38 +136,17 @@ fn main() {
 
   if let Some(diagnostics_out_path) = diagnostics_out_path_option {
     println!("\nWriting diagnostics");
-
-    write_stations(
-      &stations,
-      &format!("{diagnostics_out_path}/stations.tsv"));
-
-    write_station_signs(
+    write_diagnostics(
       &stations,
       &station_signs,
-      &format!("{diagnostics_out_path}/station-signs.tsv"));
-
-    write_switches(
       &switches,
-      &format!("{diagnostics_out_path}/switches.tsv"));
-
-    write_switches_nearest_station(
-      &switches,
-      &stations,
-      &format!("{diagnostics_out_path}/switches-nearest-station.tsv"));
-
-    write_distances(
       &distances,
-      &format!("{diagnostics_out_path}/distances.dat"));
-
-    write_rail_blocks(
       &rail_system_coords,
       &rail_map,
-      &format!("{diagnostics_out_path}/rail-blocks.tsv"));
-
-    write_chunks(
       &chunks,
-      &format!("{diagnostics_out_path}/chunks.tsv"));
-  };
+      &diagnostics_out_path
+    );
+  }
 }
 
 

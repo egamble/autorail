@@ -20,7 +20,7 @@ use crate::common::{
 };
 
 
-pub fn write_stations(stations: &Vec<Station>, out_path: &String) {
+fn write_stations(stations: &Vec<Station>, out_path: &String) {
   let mut writer = create_writer(out_path);
 
   for station in stations {
@@ -37,7 +37,7 @@ pub fn write_stations(stations: &Vec<Station>, out_path: &String) {
 }
 
 
-pub fn write_station_signs(stations: &Vec<Station>, station_signs: &Vec<StationSign>, out_path: &String) {
+fn write_station_signs(stations: &Vec<Station>, station_signs: &Vec<StationSign>, out_path: &String) {
   let mut writer = create_writer(out_path);
 
   for station_sign in station_signs {
@@ -60,7 +60,7 @@ pub fn write_station_signs(stations: &Vec<Station>, station_signs: &Vec<StationS
 }
 
 
-pub fn write_switches(switches: &Vec<Switch>, out_path: &String) {
+fn write_switches(switches: &Vec<Switch>, out_path: &String) {
   let mut writer = create_writer(out_path);
 
   for switch in switches {
@@ -79,66 +79,7 @@ pub fn write_switches(switches: &Vec<Switch>, out_path: &String) {
 }
 
 
-pub fn write_distances(distances: &Vec<i32>, out_path: &String) {
-  let num_nodes = get_num_nodes(distances);
-
-  let mut writer = create_writer(out_path);
-
-  for i in 0..num_nodes {
-    let mut row_string: String = "[".to_string();
-
-    for j in 0..num_nodes {
-      let distance =  get_distance(distances, num_nodes, i, j);
-
-      row_string.push_str(
-        &format!("{}{}",
-                 if j > 0 {", "} else {""},
-                 if distance == i32::MAX {"∞".to_string()} else {distance.to_string()}
-        )
-      );
-    }
-
-    row_string.push_str("]");
-
-    writeln_out(&mut writer, out_path, row_string);
-  }
-}
-
-
-pub fn write_rail_blocks(
-  rail_system_coords: &Vec<BlockCoords>,
-  rail_map: &HashMap<BlockCoords, Block>,
-  out_path: &String
-) {
-  // dedupe rail system coords
-  let mut coords_set: HashSet<BlockCoords> = HashSet::new();
-
-  for coords in rail_system_coords {
-    if !coords_set.contains(coords) {
-      coords_set.insert(*coords);
-    }
-  }
-
-  let mut writer = create_writer(out_path);
-
-  for coords in coords_set {
-    if let Some(rail_block) = rail_map.get(&coords) {
-
-      let (x, y, z, realm) = rail_block.coords;
-      
-      let out_string = format!("{}\t{}\t{}\t{}\t{}\t{}",
-                               x, y, z,
-                               realm_to_out_string(realm),
-                               rail_block.id as u32,
-                               rail_block.rail_data as u32
-      );
-      writeln_out(&mut writer, out_path, out_string);
-    }
-  }
-}
-
-
-pub fn write_switches_nearest_station(
+fn write_switches_nearest_station(
   switches: &Vec<Switch>,
   stations: &Vec<Station>,
   out_path: &String
@@ -180,7 +121,66 @@ pub fn write_switches_nearest_station(
 }
 
 
-pub fn write_chunks(
+fn write_distances(distances: &Vec<i32>, out_path: &String) {
+  let num_nodes = get_num_nodes(distances);
+
+  let mut writer = create_writer(out_path);
+
+  for i in 0..num_nodes {
+    let mut row_string: String = "[".to_string();
+
+    for j in 0..num_nodes {
+      let distance =  get_distance(distances, num_nodes, i, j);
+
+      row_string.push_str(
+        &format!("{}{}",
+                 if j > 0 {", "} else {""},
+                 if distance == i32::MAX {"∞".to_string()} else {distance.to_string()}
+        )
+      );
+    }
+
+    row_string.push_str("]");
+
+    writeln_out(&mut writer, out_path, row_string);
+  }
+}
+
+
+fn write_rail_blocks(
+  rail_system_coords: &Vec<BlockCoords>,
+  rail_map: &HashMap<BlockCoords, Block>,
+  out_path: &String
+) {
+  // dedupe rail system coords
+  let mut coords_set: HashSet<BlockCoords> = HashSet::new();
+
+  for coords in rail_system_coords {
+    if !coords_set.contains(coords) {
+      coords_set.insert(*coords);
+    }
+  }
+
+  let mut writer = create_writer(out_path);
+
+  for coords in coords_set {
+    if let Some(rail_block) = rail_map.get(&coords) {
+
+      let (x, y, z, realm) = rail_block.coords;
+      
+      let out_string = format!("{}\t{}\t{}\t{}\t{}\t{}",
+                               x, y, z,
+                               realm_to_out_string(realm),
+                               rail_block.id as u32,
+                               rail_block.rail_data as u32
+      );
+      writeln_out(&mut writer, out_path, out_string);
+    }
+  }
+}
+
+
+fn write_chunks(
   chunks: &Vec<(ChunkCoords, usize)>,
   out_path: &String
 ) {
@@ -197,4 +197,47 @@ pub fn write_chunks(
     );
     writeln_out(&mut writer, out_path, out_string);
   }
+}
+
+
+pub fn write_diagnostics(
+  stations: &Vec<Station>,
+  station_signs: &Vec<StationSign>,
+  switches: &Vec<Switch>,
+  distances: &Vec<i32>,
+  rail_system_coords: &Vec<BlockCoords>,
+  rail_map: &HashMap<BlockCoords, Block>,
+  chunks: &Vec<(ChunkCoords, usize)>,
+  diagnostics_out_path: &String
+) {
+  write_stations(
+    &stations,
+    &format!("{diagnostics_out_path}/stations.tsv"));
+  
+  write_station_signs(
+    &stations,
+    &station_signs,
+    &format!("{diagnostics_out_path}/station-signs.tsv"));
+  
+  write_switches(
+    &switches,
+    &format!("{diagnostics_out_path}/switches.tsv"));
+  
+  write_switches_nearest_station(
+    &switches,
+    &stations,
+    &format!("{diagnostics_out_path}/switches-nearest-station.tsv"));
+  
+  write_distances(
+    &distances,
+    &format!("{diagnostics_out_path}/distances.dat"));
+  
+  write_rail_blocks(
+    &rail_system_coords,
+    &rail_map,
+    &format!("{diagnostics_out_path}/rail-blocks.tsv"));
+  
+  write_chunks(
+    &chunks,
+    &format!("{diagnostics_out_path}/chunks.tsv"));
 }
