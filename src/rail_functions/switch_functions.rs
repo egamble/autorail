@@ -114,6 +114,7 @@ fn switch_body(
   );
   
   let mut body = format!("***/x/switch/set_{}_{}
+
 ",
                          from_direction.to_str(),
                          max_switch_rail_data.to_str()

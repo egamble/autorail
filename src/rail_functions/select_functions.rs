@@ -21,8 +21,10 @@ fn get_subrange_len(range_len: usize) -> usize {
 
 
 fn write_start_function(stations: &Vec<Station>, out_path: &String) {
-    let mut body = r#"clone ~ ~ ~ ~ ~ ~ ~ ~1 ~
+  let mut body = r#"clone ~ ~ ~ ~ ~ ~ ~ ~1 ~
+
 data merge block ~ ~1 ~ {front_text: {messages: ['{"text":""}','{"text":""}','{"text":""}','{"text":""}']}}
+
 $***/select/$(direction)/*1*_a"#.to_string();
 
   let num_stations = stations.len();
@@ -74,6 +76,7 @@ fn write_single_select_functions(
 
   let mut line_1 =
     r#"data merge block *1* {front_text: {messages: ['{"text":"*2*","color":"dark_blue"}','{"text":"*3*","clickEvent":{"action":"run_command","value":"***/x/station/summon/*4* {station_id:*5*}"},"color":"dark_blue"}','{"text":"*6*","color":"dark_blue"}','{"text":""}']}}
+
 "#.to_string();
 
   let coords_1 = if is_a {"~ ~1 ~"} else {"~ ~ ~"};
@@ -89,6 +92,7 @@ fn write_single_select_functions(
 
   let mut line_2 =
     r#"data merge block *1* {front_text: {messages: ['{"text":""}','{"text":"Next Selection","clickEvent":{"action":"run_command","value":"***/select/*2*/*3*"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+
 "#.to_string();
 
   let coords_2 = if is_a {"~ ~ ~"} else {"~ ~-1 ~"};
@@ -107,6 +111,7 @@ fn write_single_select_functions(
 
   let mut line_3 =
     r#"clone ~ ~ ~ ~ ~ ~ *1*
+
 "#.to_string();
 
   let coords_3 = make_select_sign_coords_str(direction, is_a);
@@ -147,6 +152,7 @@ fn write_multiple_select_functions(
 
   let mut line_1 =
     r#"data merge block *1* {front_text: {messages: ['{"text":""}','{"text":"*2*","clickEvent":{"action":"run_command","value":"***/select/*3*/*4*"},"color":"dark_blue"}','{"text":"-","color":"dark_blue"}','{"text":"*5*","color":"dark_blue"}']}}
+
 "#.to_string();
 
   let coords_1 = if is_a {"~ ~1 ~"} else {"~ ~ ~"};
@@ -174,6 +180,7 @@ fn write_multiple_select_functions(
 
   let mut line_2 =
     r#"data merge block *1* {front_text: {messages: ['{"text":""}','{"text":"Next Selection","clickEvent":{"action":"run_command","value":"***/select/*2*/*3*"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+
 "#.to_string();
 
   let coords_2 = if is_a {"~ ~ ~"} else {"~ ~-1 ~"};

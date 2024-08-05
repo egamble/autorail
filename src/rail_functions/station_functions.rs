@@ -16,6 +16,7 @@ fn build_station_body(
   num_stations: usize
 ) -> String {
   let mut body = r#"execute positioned *1* run ***/x/station/build/*2*
+
 data merge block *3* {front_text: {has_glowing_text: 1b, messages: ['{"text":"*4*","color":"blue"}','{"text":"*5*","color":"blue","clickEvent":{"action":"run_command","value":"***/x/station/name_sign {next_station_id:*6*}"}}','{"text":"*7*","color":"blue"}','{"text":"","color":"blue"}']}}"#.to_string();
 
   let (x, y, z, _) = station.coords;
