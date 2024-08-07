@@ -1,5 +1,6 @@
 use crate::common::{Direction, RailData, Switch};
 use crate::common::{
+  block_coords_to_file_name,
   complete_function,
   create_and_write,
   realm_to_command_realm,
@@ -150,14 +151,14 @@ fn switch_body(
 
 fn add_build_switches_body(
   switch: &Switch,
-  switch_id: usize,
   direction: Direction
 ) -> String {
   let mut body = r#"execute in *1* run setblock *2* air
 execute in *1* run setblock *2* command_block[facing=down]{Command:"***/switches/*3*"}
 "#.to_string();
 
-  let (x, y, z, realm) = switch.coords;
+  let switch_coords = switch.coords;
+  let (x, y, z, realm) = switch_coords;
 
   let mut x_offset = 0;
   let mut z_offset = 0;
@@ -179,11 +180,18 @@ execute in *1* run setblock *2* command_block[facing=down]{Command:"***/switches
 
   body = body.replace("*1*", realm_to_command_realm(realm).as_str());
   body = body.replace("*2*", format!("{} {} {}", x + x_offset, y - 2, z + z_offset).as_str());
-  body = body.replace("*3*", format!("sw{}_{}", switch_id, direction.to_str()).as_str());
+  body = body.replace("*3*", format!("{}_{}",
+                                     block_coords_to_file_name(switch_coords),
+                                     direction.to_str()).as_str());
   
   body
 }
 
+
+// The reason switch functions use a switch's coordinates in the function name rather
+// than a simple unique number, such as a switch's index within the switches vector,
+// is so an existing switch will continue to run the correct switch function even when
+// new switches are added and the build function hasn't yet been run near the existing switch.
 
 pub fn write_switch_functions(
   switches: &Vec<Switch>,
@@ -204,15 +212,14 @@ pub fn write_switch_functions(
         build_switches_body.push_str(
           add_build_switches_body(
             switch,
-            switch_id,
             direction
           ).as_str()
         );
 
         create_and_write(
-          &format!("{}/switches/sw{}_{}.mcfunction",
+          &format!("{}/switches/{}_{}.mcfunction",
                    out_path,
-                   switch_id,
+                   block_coords_to_file_name(switch.coords),
                    direction.to_str()
           ),
           complete_function(

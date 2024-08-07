@@ -1,5 +1,6 @@
-use crate::common::{Direction, Realm, Station, StationSign};
+use crate::common::{BlockCoords, Direction, Station, StationSign};
 use crate::common::{
+  block_coords_to_file_name,
   complete_function,
   create_and_write,
   create_and_writeln,
@@ -46,14 +47,14 @@ fn station_sign_body(station_sign: &StationSign, stations: &Vec<Station>) -> Str
 
 fn build_station_sign_body(
   station_sign: &StationSign,
-  station_sign_id: usize,
   stations: &Vec<Station>,
   distances: &Vec<i32>,
   num_nodes: usize
 ) -> String {
   let mut body = r#"data merge block *1* {front_text: {messages: ['{"text":"*2*","color":"dark_blue"}','{"text":"*3*","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/signs/*4*"}}','{"text":"*5*","color":"dark_blue"}','{"text":"*6*","color":"dark_blue"}']}}"#.to_string();
   
-  let (x, y, z, _) = station_sign.coords;
+  let sign_coords = station_sign.coords;
+  let (x, y, z, _) = sign_coords;
 
   let refers_to_station = &stations[station_sign.refers_to_station_id];
   let (row_1, row_2, row_3) = break_up_station_name(refers_to_station);
@@ -75,10 +76,10 @@ fn build_station_sign_body(
     )
   }
 
-  body = body.replace("*1*", format!("{} {} {}", x, y, z).as_str());
+  body = body.replace("*1*", format!("{x} {y} {z}").as_str());
   body = body.replace("*2*", row_1.as_str());
   body = body.replace("*3*", row_2.as_str());
-  body = body.replace("*4*", format!("sn{}", station_sign_id).as_str());
+  body = body.replace("*4*", &block_coords_to_file_name(sign_coords));
   body = body.replace("*5*", row_3.as_str());
   body = body.replace("*6*", row_4.as_str());
 
@@ -86,14 +87,21 @@ fn build_station_sign_body(
 }
 
 
-fn add_build_station_signs_body(realm: Realm, station_sign_id: usize) -> String {
-  format!("execute in {} run ***/signs/build_sn{}
+fn add_build_station_signs_body(sign_coords: BlockCoords) -> String {
+  let (_, _, _, realm) = sign_coords;
+  
+  format!("execute in {} run ***/signs/build_{}
 ",
           realm_to_command_realm(realm),
-          station_sign_id
+          block_coords_to_file_name(sign_coords),
   )
 }
 
+
+// The reason sign functions use a sign's coordinates in the function name rather
+// than a simple unique number, such as a sign's index within the station_signs vector,
+// is so an existing sign will continue to run the correct sign function even when
+// new signs are added and the build function hasn't yet been run near the existing sign.
 
 pub fn write_sign_functions(
   station_signs: &Vec<StationSign>,
@@ -105,17 +113,18 @@ pub fn write_sign_functions(
 
   let mut build_station_signs_body: String = EMPTY;
 
-  for (station_sign_id, station_sign) in station_signs.iter().enumerate() {
-    let (_, _, _, realm) = station_sign.coords;
+  for station_sign in station_signs {
+
+    let sign_coords = station_sign.coords;
 
     build_station_signs_body.push_str(
-      add_build_station_signs_body(realm, station_sign_id).as_str()
+      add_build_station_signs_body(sign_coords).as_str()
     );
 
     create_and_writeln(
-      &format!("{}/signs/sn{}.mcfunction",
+      &format!("{}/signs/{}.mcfunction",
                out_path,
-               station_sign_id
+               block_coords_to_file_name(sign_coords),
       ),
       complete_function(
         station_sign_body(station_sign, stations)
@@ -123,14 +132,13 @@ pub fn write_sign_functions(
     );
 
     create_and_writeln(
-      &format!("{}/signs/build_sn{}.mcfunction",
+      &format!("{}/signs/build_{}.mcfunction",
                out_path,
-               station_sign_id
+               block_coords_to_file_name(sign_coords),
       ),
       complete_function(
         build_station_sign_body(
           station_sign,
-          station_sign_id,
           stations,
           distances,
           num_nodes
