@@ -97,6 +97,10 @@ fn main() {
   println!("\nFinding stations");
   let stations = find_stations(&blocks, &rail_map, &sign_map);
 
+  if stations.len() == 0 {
+    exit!("No stations found");
+  }
+
   println!("Finding station signs");
   let station_signs = find_station_signs(&blocks, &stations);
 
