@@ -75,7 +75,7 @@ fn write_single_select_functions(
   let direction_str = direction.to_str();
 
   let mut line_1 =
-    r#"data merge block *1* {front_text: {messages: [{"text":"*2*","color":"dark_blue"},{"text":"*3*","click_event":{"action":"run_command","value":"***/x/station/summon/*4* {station_id:*5*}"},"color":"dark_blue"},{"text":"*6*","color":"dark_blue"},{"text":""}]}}
+    r#"data merge block *1* {front_text: {messages: [{"text":"*2*","color":"dark_blue"},{"text":"*3*","click_event":{"action":"run_command","command":"***/x/station/summon/*4* {station_id:*5*}"},"color":"dark_blue"},{"text":"*6*","color":"dark_blue"},{"text":""}]}}
 
 "#.to_string();
 
@@ -91,7 +91,7 @@ fn write_single_select_functions(
   line_1 = line_1.replace("*6*", row_3.as_str());
 
   let mut line_2 =
-    r#"data merge block *1* {front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","value":"***/select/*2*/*3*"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+    r#"data merge block *1* {front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","command":"***/select/*2*/*3*"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 "#.to_string();
 
@@ -119,7 +119,7 @@ fn write_single_select_functions(
   line_3 = line_3.replace("*1*", coords_3.as_str());
 
   let mut line_4 =
-    r#"data merge block *1* {front_text: {messages: [{"text":""},{"text":"Teleport","click_event":{"action":"run_command","value":"***/x/station/teleport/*2* {station_id:*3*}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+    r#"data merge block *1* {front_text: {messages: [{"text":""},{"text":"Teleport","click_event":{"action":"run_command","command":"***/x/station/teleport/*2* {station_id:*3*}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 "#.to_string();
 
   line_4 = line_4.replace("*1*", coords_3.as_str());
@@ -151,7 +151,7 @@ fn write_multiple_select_functions(
   let direction_str = direction.to_str();
 
   let mut line_1 =
-    r#"data merge block *1* {front_text: {messages: [{"text":""},{"text":"*2*","click_event":{"action":"run_command","value":"***/select/*3*/*4*"},"color":"dark_blue"},{"text":"-","color":"dark_blue"},{"text":"*5*","color":"dark_blue"}]}}
+    r#"data merge block *1* {front_text: {messages: [{"text":""},{"text":"*2*","click_event":{"action":"run_command","command":"***/select/*3*/*4*"},"color":"dark_blue"},{"text":"-","color":"dark_blue"},{"text":"*5*","color":"dark_blue"}]}}
 
 "#.to_string();
 
@@ -179,7 +179,7 @@ fn write_multiple_select_functions(
   line_1 = line_1.replace("*5*", station_name_2.as_str());
 
   let mut line_2 =
-    r#"data merge block *1* {front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","value":"***/select/*2*/*3*"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+    r#"data merge block *1* {front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","command":"***/select/*2*/*3*"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 "#.to_string();
 
