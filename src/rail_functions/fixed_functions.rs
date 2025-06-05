@@ -105,7 +105,7 @@ setblock ~2 ~ ~ air
 
 data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:n}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
-$summon minecart ~1 ~-0.5 ~ {CustomName:"\"S$(station_id)\""}"#;
+$summon minecart ~1 ~-0.5 ~ {CustomName:"S$(station_id)"}"#;
 
 const STATION_SUMMON_S: &str =
   r#"setblock ~ ~ ~ air
@@ -113,7 +113,7 @@ setblock ~-2 ~ ~ air
 
 data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
-$summon minecart ~-1 ~-0.5 ~ {CustomName:"\"S$(station_id)\""}"#;
+$summon minecart ~-1 ~-0.5 ~ {CustomName:"S$(station_id)"}"#;
 
 const STATION_SUMMON_W: &str =
   r#"setblock ~ ~ ~ air
@@ -121,7 +121,7 @@ setblock ~ ~ ~-2 air
 
 data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
-$summon minecart ~ ~-0.5 ~-1 {CustomName:"\"S$(station_id)\""}"#;
+$summon minecart ~ ~-0.5 ~-1 {CustomName:"S$(station_id)"}"#;
 
 const STATION_SUMMON_E: &str =
   r#"setblock ~ ~ ~ air
@@ -129,7 +129,7 @@ setblock ~ ~ ~2 air
 
 data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
-$summon minecart ~ ~-0.5 ~1 {CustomName:"\"S$(station_id)\""}"#;
+$summon minecart ~ ~-0.5 ~1 {CustomName:"S$(station_id)"}"#;
 
 const STATION_TELEPORT_N: &str =
   r#"setblock ~ ~ ~ air
