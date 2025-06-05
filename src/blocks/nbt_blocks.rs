@@ -216,6 +216,7 @@ fn make_sign_text_map(chunk_root: &HashMap<String, Nbt>, chunk_coords: ChunkCoor
                             let block_z = read_i32(block_z_data);
 
                             let block_coords = (block_x, block_y, block_z, realm);
+
                             sign_text_map.insert(block_coords, extract_sign_text(block_entity));
                           }
                         }
@@ -239,24 +240,39 @@ fn extract_sign_text(block_entity: &HashMap<String, Nbt>) -> String {
   let mut sign_text = EMPTY;
 
   if let Some(front_text_tag) = block_entity.get("front_text") {
-    if let Nbt::NbtCompound(front_text) = front_text_tag {
+    if let Nbt::NbtCompound(front_text_compound) = front_text_tag {
 
-      if let Some(messages_tag) = front_text.get("messages") {
+      if let Some(messages_tag) = front_text_compound.get("messages") {
         if let Nbt::NbtList(messages) = messages_tag {
 
           for message_index in 0..messages.len() {
             let message_tag = &messages[message_index];
-            if let Nbt::NbtData(message_data) = message_tag {
-              let message = str::from_utf8(message_data).unwrap();
 
-              let mut next_text = text_from_json(message);
-              next_text = next_text.trim().to_string();
+            let mut next_text = EMPTY;
 
-              if sign_text != "" && next_text != "" {
-                sign_text.push_str(" ");
+            if let Nbt::NbtCompound(message_compound) = message_tag {
+              if let Some(text_tag) = message_compound.get("text") {
+                if let Nbt::NbtData(text_data) = text_tag {
+                  next_text = str::from_utf8(text_data).unwrap().to_string();
+                }
               }
-              sign_text.push_str(&next_text);
             }
+
+            if let Nbt::NbtData(message_data) = message_tag {
+              let message = str::from_utf8(message_data).unwrap().trim();
+
+              if message.starts_with("{") || message.starts_with("\"") {
+                next_text = text_from_json(message);
+              } else {
+                next_text = message.to_string();
+              }
+            }
+
+            next_text = next_text.trim().to_string();
+            if sign_text != "" && next_text != "" {
+              sign_text.push_str(" ");
+            }
+            sign_text.push_str(&next_text);
           }
         }
       }

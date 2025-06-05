@@ -10,11 +10,11 @@ const BUILD: &str =
 ***/switches/_build";
 
 const STATION_BUILD_N: &str =
-  r#"data merge block ~-1 ~1 ~ {front_text: {messages: ['{"text":""}','{"text":"Select Station","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/select/_start {direction:n}"}}','{"text":""}','{"text":""}']}}
+  r#"data merge block ~-1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/select/_start {direction:n}"}},{"text":""},{"text":""}]}}
 
-data merge block ~1 ~1 ~ {front_text: {messages: ['{"text":""}','{"text":"Destroy Carts","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/destroy"}}','{"text":""}','{"text":""}']}}
+data merge block ~1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-data merge block ~ ~1 ~ {front_text: {messages: ['{"text":""}','{"text":"Launch Cart","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/launch/n"}}','{"text":""}','{"text":""}']}}
+data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/launch/n"}},{"text":""},{"text":""}]}}
 
 setblock ~1 ~2 ~ air
 setblock ~-1 ~2 ~ air
@@ -23,11 +23,11 @@ setblock ~ ~-2 ~-1 air
 setblock ~ ~-2 ~-1 command_block[facing=down]{Command:"***/x/station/incoming"}"#;
 
 const STATION_BUILD_S: &str =
-  r#"data merge block ~1 ~1 ~ {front_text: {messages: ['{"text":""}','{"text":"Select Station","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/select/_start {direction:s}"}}','{"text":""}','{"text":""}']}}
+  r#"data merge block ~1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/select/_start {direction:s}"}},{"text":""},{"text":""}]}}
 
-data merge block ~-1 ~1 ~ {front_text: {messages: ['{"text":""}','{"text":"Destroy Carts","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/destroy"}}','{"text":""}','{"text":""}']}}
+data merge block ~-1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-data merge block ~ ~1 ~ {front_text: {messages: ['{"text":""}','{"text":"Launch Cart","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/launch/s"}}','{"text":""}','{"text":""}']}}
+data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/launch/s"}},{"text":""},{"text":""}]}}
 
 setblock ~-1 ~2 ~ air
 setblock ~1 ~2 ~ air
@@ -36,11 +36,11 @@ setblock ~ ~-2 ~1 air
 setblock ~ ~-2 ~1 command_block[facing=down]{Command:"***/x/station/incoming"}"#;
 
 const STATION_BUILD_W: &str =
-  r#"data merge block ~ ~1 ~1 {front_text: {messages: ['{"text":""}','{"text":"Select Station","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/select/_start {direction:w}"}}','{"text":""}','{"text":""}']}}
+  r#"data merge block ~ ~1 ~1 {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/select/_start {direction:w}"}},{"text":""},{"text":""}]}}
 
-data merge block ~ ~1 ~-1 {front_text: {messages: ['{"text":""}','{"text":"Destroy Carts","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/destroy"}}','{"text":""}','{"text":""}']}}
+data merge block ~ ~1 ~-1 {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-data merge block ~ ~1 ~ {front_text: {messages: ['{"text":""}','{"text":"Launch Cart","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/launch/w"}}','{"text":""}','{"text":""}']}}
+data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/launch/w"}},{"text":""},{"text":""}]}}
 
 setblock ~ ~2 ~-1 air
 setblock ~ ~2 ~1 air
@@ -49,11 +49,11 @@ setblock ~-1 ~-2 ~ air
 setblock ~-1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming"}"#;
 
 const STATION_BUILD_E: &str =
-  r#"data merge block ~ ~1 ~-1 {front_text: {messages: ['{"text":""}','{"text":"Select Station","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/select/_start {direction:e}"}}','{"text":""}','{"text":""}']}}
+  r#"data merge block ~ ~1 ~-1 {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/select/_start {direction:e}"}},{"text":""},{"text":""}]}}
 
-data merge block ~ ~1 ~1 {front_text: {messages: ['{"text":""}','{"text":"Destroy Carts","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/destroy"}}','{"text":""}','{"text":""}']}}
+data merge block ~ ~1 ~1 {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-data merge block ~ ~1 ~ {front_text: {messages: ['{"text":""}','{"text":"Launch Cart","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/launch/e"}}','{"text":""}','{"text":""}']}}
+data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","clickEvent":{"action":"run_command","value":"***/x/station/launch/e"}},{"text":""},{"text":""}]}}
 
 setblock ~ ~2 ~1 air
 setblock ~ ~2 ~-1 air
@@ -103,7 +103,7 @@ const STATION_SUMMON_N: &str =
  r#"setblock ~ ~ ~ air
 setblock ~2 ~ ~ air
 
-data merge block ~ ~-1 ~ {front_text: {messages: ['{"text":""}','{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:n}"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:n}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~1 ~-0.5 ~ {CustomName:"\"S$(station_id)\""}"#;
 
@@ -111,7 +111,7 @@ const STATION_SUMMON_S: &str =
   r#"setblock ~ ~ ~ air
 setblock ~-2 ~ ~ air
 
-data merge block ~ ~-1 ~ {front_text: {messages: ['{"text":""}','{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:s}"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:s}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~-1 ~-0.5 ~ {CustomName:"\"S$(station_id)\""}"#;
 
@@ -119,7 +119,7 @@ const STATION_SUMMON_W: &str =
   r#"setblock ~ ~ ~ air
 setblock ~ ~ ~-2 air
 
-data merge block ~ ~-1 ~ {front_text: {messages: ['{"text":""}','{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:w}"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:w}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~ ~-0.5 ~-1 {CustomName:"\"S$(station_id)\""}"#;
 
@@ -127,7 +127,7 @@ const STATION_SUMMON_E: &str =
   r#"setblock ~ ~ ~ air
 setblock ~ ~ ~2 air
 
-data merge block ~ ~-1 ~ {front_text: {messages: ['{"text":""}','{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:e}"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:e}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~ ~-0.5 ~1 {CustomName:"\"S$(station_id)\""}"#;
 
@@ -135,7 +135,7 @@ const STATION_TELEPORT_N: &str =
   r#"setblock ~ ~ ~ air
 setblock ~-2 ~ ~ air
 
-data merge block ~-2 ~-1 ~ {front_text: {messages: ['{"text":""}','{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:n}"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+data merge block ~-2 ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:n}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $***/x/teleport/s$(station_id)"#;
 
@@ -143,7 +143,7 @@ const STATION_TELEPORT_S: &str =
   r#"setblock ~ ~ ~ air
 setblock ~2 ~ ~ air
 
-data merge block ~2 ~-1 ~ {front_text: {messages: ['{"text":""}','{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:s}"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+data merge block ~2 ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:s}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $***/x/teleport/s$(station_id)"#;
 
@@ -151,7 +151,7 @@ const STATION_TELEPORT_W: &str =
   r#"setblock ~ ~ ~ air
 setblock ~ ~ ~2 air
 
-data merge block ~ ~-1 ~2 {front_text: {messages: ['{"text":""}','{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:w}"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+data merge block ~ ~-1 ~2 {front_text: {messages: [{"text":""},{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:w}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $***/x/teleport/s$(station_id)"#;
 
@@ -159,7 +159,7 @@ const STATION_TELEPORT_E: &str =
   r#"setblock ~ ~ ~ air
 setblock ~ ~ ~-2 air
 
-data merge block ~ ~-1 ~-2 {front_text: {messages: ['{"text":""}','{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:e}"},"color":"dark_blue"}','{"text":""}','{"text":""}']}}
+data merge block ~ ~-1 ~-2 {front_text: {messages: [{"text":""},{"text":"Select Station","clickEvent":{"action":"run_command","value":"***/select/_start {direction:e}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $***/x/teleport/s$(station_id)"#;
 
