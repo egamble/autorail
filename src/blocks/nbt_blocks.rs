@@ -248,6 +248,15 @@ fn extract_sign_text(block_entity: &HashMap<String, Nbt>) -> String {
           for message_index in 0..messages.len() {
             let message_tag = &messages[message_index];
 
+            // There are four different ways that each of the four sign messages (on the front of the sign) can contain text:
+            //
+            // 1. The message can be a compound with a tag "text", the value of which is the message text.
+            // 2. The message is text (as data) without either surrounding curly braces or double quotes, so it is already the message text.
+            // 3. The message is text (as data) with surrounding double quotes,
+            //    in which case the text is parsed as JSON so that the quotes are stripped off.
+            // 4. The message is text (as data) with surrounding curly braces, in which case it is parsed as JSON and
+            //    the resulting object has a tag "text", the value of which is the message text.
+
             let mut next_text = EMPTY;
 
             if let Nbt::NbtCompound(message_compound) = message_tag {
