@@ -131,6 +131,9 @@ data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select St
 
 $summon minecart ~ ~-0.5 ~1 {CustomName:"S$(station_id)"}"#;
 
+const STATION_SUMMON_BUILD_ALL: &str =
+  r#"$summon minecart $(x) $(y) $(z) {CustomName:"BuildAll"}"#;
+
 const STATION_TELEPORT_N: &str =
   r#"setblock ~ ~ ~ air
 setblock ~-2 ~ ~ air
@@ -269,6 +272,11 @@ fn write_fixed_station_functions(out_path: &String) {
   create_and_writeln(
     &format!("{out_path}/x/station/summon/e.mcfunction"),
     complete_function_str(STATION_SUMMON_E)
+  );
+
+  create_and_writeln(
+    &format!("{out_path}/x/station/summon_build_all.mcfunction"),
+    complete_function_str(STATION_SUMMON_BUILD_ALL)
   );
 
   create_and_writeln(
