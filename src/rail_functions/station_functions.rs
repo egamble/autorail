@@ -15,7 +15,7 @@ fn build_station_body(
   station_id: usize,
   num_stations: usize
 ) -> String {
-  let mut body = r#"execute positioned *1* run ***/x/station/build/*2*
+  let mut body = r#"execute positioned *1* run ***/x/station/build/*2* {next_station_id:*6*}
 
 data merge block *3* {front_text: {has_glowing_text: 1b, messages: [{"text":"*4*","color":"blue"},{"text":"*5*","color":"blue","click_event":{"action":"run_command","command":"***/x/station/name_sign {next_station_id:*6*}"}},{"text":"*7*","color":"blue"},{"text":"","color":"blue"}]}}"#.to_string();
 
@@ -41,7 +41,7 @@ data merge block *3* {front_text: {has_glowing_text: 1b, messages: [{"text":"*4*
 
 
 fn add_build_stations_body(realm: Realm, station_id: usize) -> String {
-  format!("execute in {} run ***/stations/build_s{}
+  format!("execute in {} run ***/stations/build/s{}
 ",
           realm_to_command_realm(realm),
           station_id
@@ -63,7 +63,7 @@ pub fn write_station_functions(stations: &Vec<Station>, out_path: &String) {
 
 
     create_and_writeln(
-      &format!("{}/stations/build_s{}.mcfunction",
+      &format!("{}/stations/build/s{}.mcfunction",
                out_path,
                station_id
       ),

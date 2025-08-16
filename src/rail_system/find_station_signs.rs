@@ -82,7 +82,7 @@ pub fn find_station_signs(blocks: &Vec<Block>, stations: &Vec<Station>) -> Vec<S
         station_sign.nearest_num = station_sign_nearest_num(&block.sign_text);
 
         if station_sign.nearest_num == 0 {
-          // indicates a "Build All" sign
+          // indicates a "Summon BuildAll Cart" sign
           station_signs.push(station_sign);
           continue;
         }

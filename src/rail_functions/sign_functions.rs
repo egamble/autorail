@@ -70,7 +70,7 @@ fn build_station_sign_body(
   let mut row_4 = EMPTY;
 
   if station_sign.nearest_num == 0 {
-    row_2 = "Build All".to_string();
+    row_2 = "Summon BuildAll".to_string();
     row_4 = "N0".to_string();
   } else {
     let refers_to_station = &stations[station_sign.refers_to_station_id];
@@ -107,7 +107,7 @@ fn build_station_sign_body(
 fn add_build_station_signs_body(sign_coords: BlockCoords) -> String {
   let (_, _, _, realm) = sign_coords;
   
-  format!("execute in {} run ***/signs/build_{}
+  format!("execute in {} run ***/signs/build/{}
 ",
           realm_to_command_realm(realm),
           block_coords_to_file_name(sign_coords),
@@ -149,7 +149,7 @@ pub fn write_sign_functions(
     );
 
     create_and_writeln(
-      &format!("{}/signs/build_{}.mcfunction",
+      &format!("{}/signs/build/{}.mcfunction",
                out_path,
                block_coords_to_file_name(sign_coords),
       ),

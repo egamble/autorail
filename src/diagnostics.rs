@@ -42,7 +42,7 @@ fn write_station_signs(stations: &Vec<Station>, station_signs: &Vec<StationSign>
 
   for station_sign in station_signs {
     if station_sign.nearest_num == 0 {
-      // skip "Build All" signs
+      // skip "Summon BuildAll Cart" signs
       continue;
     }
 
