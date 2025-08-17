@@ -324,45 +324,6 @@ fn write_teleport_functions(stations: &Vec<Station>, out_path: &String) {
   }
 }
 
-
-fn write_jump_functions(stations: &Vec<Station>, out_path: &String) {
-  for (station_id, station) in stations.iter().enumerate() {
-    let (x, y, z, realm) = station.coords;
-  
-    let mut x_offset = 0;
-    let mut z_offset = 0;
-
-    match station.direction {
-      Direction::N => {
-        z_offset = -2;
-      },
-      Direction::S => {
-        z_offset = 2;
-      },
-      Direction::W => {
-        x_offset = -2;
-      },
-      Direction::E => {
-        x_offset = 2;
-      },
-    }
-
-    let body = format!("$***/x/station/jump/{} {{x:{},y:{},z:{},dim:{}}}",
-                        station.direction.to_str(),
-                        x + x_offset, (y as f64) + 0.5, z + z_offset,
-                        realm_to_command_realm(realm)
-    );
-
-    create_and_writeln(
-      &format!("{}/x/jump/s{}.mcfunction",
-               out_path,
-               station_id
-      ),
-      complete_function(body)
-    );
-  }
-}
-
   
 pub fn write_select_functions(stations: &Vec<Station>, out_path: &String) {
 
@@ -371,6 +332,4 @@ pub fn write_select_functions(stations: &Vec<Station>, out_path: &String) {
   write_select_ranges(stations, (0, stations.len() - 1), out_path);
 
   write_teleport_functions(stations, out_path);
-
-  write_jump_functions(stations, out_path);
 }
