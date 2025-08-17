@@ -41,11 +41,6 @@ fn write_station_signs(stations: &Vec<Station>, station_signs: &Vec<StationSign>
   let mut writer = create_writer(out_path);
 
   for station_sign in station_signs {
-    if station_sign.nearest_num == 0 {
-      // skip "Summon BuildAll Cart" signs
-      continue;
-    }
-
     let (x, y, z, realm) = station_sign.coords;
 
     let refers_to_station_id = station_sign.refers_to_station_id;
