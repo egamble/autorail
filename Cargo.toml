@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 serde_json = "1.0.117"
 zune-inflate = "0.2.54"
+rand = "0.8"

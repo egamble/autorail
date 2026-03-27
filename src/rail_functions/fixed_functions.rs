@@ -20,7 +20,7 @@ setblock ~1 ~2 ~ air
 setblock ~-1 ~2 ~ air
 setblock ~ ~-2 ~-1 air
 
-$setblock ~ ~-2 ~-1 command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id)}"}"#;
+$setblock ~ ~-2 ~-1 command_block[facing=down]{Command:"***/x/station/incoming/n {next_station_id:$(next_station_id)}"}"#;
 
 const STATION_BUILD_S: &str =
   r#"data merge block ~1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"}},{"text":""},{"text":""}]}}
@@ -33,7 +33,7 @@ setblock ~-1 ~2 ~ air
 setblock ~1 ~2 ~ air
 setblock ~ ~-2 ~1 air
 
-$setblock ~ ~-2 ~1 command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id)}"}"#;
+$setblock ~ ~-2 ~1 command_block[facing=down]{Command:"***/x/station/incoming/s {next_station_id:$(next_station_id)}"}"#;
 
 const STATION_BUILD_W: &str =
   r#"data merge block ~ ~1 ~1 {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"}},{"text":""},{"text":""}]}}
@@ -46,7 +46,7 @@ setblock ~ ~2 ~-1 air
 setblock ~ ~2 ~1 air
 setblock ~-1 ~-2 ~ air
 
-$setblock ~-1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id)}"}"#;
+$setblock ~-1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming/w {next_station_id:$(next_station_id)}"}"#;
 
 const STATION_BUILD_E: &str =
   r#"data merge block ~ ~1 ~-1 {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"}},{"text":""},{"text":""}]}}
@@ -59,7 +59,7 @@ setblock ~ ~2 ~1 air
 setblock ~ ~2 ~-1 air
 setblock ~1 ~-2 ~ air
 
-$setblock ~1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id)}"}"#;
+$setblock ~1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming/e {next_station_id:$(next_station_id)}"}"#;
 
 const STATION_NAME_SIGN: &str =
    "***/build
@@ -68,11 +68,45 @@ $***/x/teleport/s$(next_station_id) {elevation:-20}";
 const STATION_DESTROY: &str =
   r#"kill @e[type=minecart,name=!"NoKill"]"#;
 
-const STATION_INCOMING: &str =
-  r#"kill @e[type=minecart,name=!"NoKill",distance=..2]"#;
+const STATION_INCOMING_N: &str =
+  r#"kill @e[type=minecart,name=!"NoKill",name=!"BuildAll",distance=..2]
 
-const STATION_OUTGOING: &str =
-  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming"}"#;
+execute if entity @e[type=minecart,name="BuildAll",distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[0.0,0.0,-1.0]}
+
+execute if entity @e[type=minecart,name="BuildAll",distance=..2] run ***/build"#;
+
+const STATION_INCOMING_S: &str =
+  r#"kill @e[type=minecart,name=!"NoKill",name=!"BuildAll",distance=..2]
+
+execute if entity @e[type=minecart,name="BuildAll",distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[0.0,0.0,1.0]}
+
+execute if entity @e[type=minecart,name="BuildAll",distance=..2] run ***/build"#;
+
+const STATION_INCOMING_W: &str =
+  r#"kill @e[type=minecart,name=!"NoKill",name=!"BuildAll",distance=..2]
+
+execute if entity @e[type=minecart,name="BuildAll",distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[-1.0,0.0,0.0]}
+
+execute if entity @e[type=minecart,name="BuildAll",distance=..2] run ***/build"#;
+
+const STATION_INCOMING_E: &str =
+  r#"kill @e[type=minecart,name=!"NoKill",name=!"BuildAll",distance=..2]
+
+execute if entity @e[type=minecart,name="BuildAll",distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[1.0,0.0,0.0]}
+
+execute if entity @e[type=minecart,name="BuildAll",distance=..2] run ***/build"#;
+
+const STATION_OUTGOING_N: &str =
+  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming/n"}"#;
+
+const STATION_OUTGOING_S: &str =
+  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming/s"}"#;
+
+const STATION_OUTGOING_W: &str =
+  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming/w"}"#;
+
+const STATION_OUTGOING_E: &str =
+  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming/e"}"#;
 
 const STATION_QUICK_SELECT: &str =
   r#"$execute positioned $(x) $(y) $(z) run clone ~ ~ ~ ~ ~ ~ ~ ~1 ~
@@ -80,22 +114,22 @@ const STATION_QUICK_SELECT: &str =
 $execute positioned $(x) $(y) $(z) run ***/select/$(direction)/$(select_fn)"#;
 
 const STATION_LAUNCH_N: &str =
-  r#"data merge block ~ ~-3 ~-1 {Command:"***/x/station/outgoing"}
+  r#"data merge block ~ ~-3 ~-1 {Command:"***/x/station/outgoing/n"}
 
 data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[0.0,0.0,-1.0]}"#;
 
 const STATION_LAUNCH_S: &str =
-  r#"data merge block ~ ~-3 ~1 {Command:"***/x/station/outgoing"}
+  r#"data merge block ~ ~-3 ~1 {Command:"***/x/station/outgoing/s"}
 
 data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[0.0,0.0,1.0]}"#;
 
 const STATION_LAUNCH_W: &str =
-  r#"data merge block ~-1 ~-3 ~ {Command:"***/x/station/outgoing"}
+  r#"data merge block ~-1 ~-3 ~ {Command:"***/x/station/outgoing/w"}
 
 data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[-1.0,0.0,0.0]}"#;
 
 const STATION_LAUNCH_E: &str =
-  r#"data merge block ~1 ~-3 ~ {Command:"***/x/station/outgoing"}
+  r#"data merge block ~1 ~-3 ~ {Command:"***/x/station/outgoing/e"}
 
 data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[1.0,0.0,0.0]}"#;
 
@@ -130,6 +164,9 @@ setblock ~ ~ ~2 air
 data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~ ~-0.5 ~1 {CustomName:"S$(station_id)"}"#;
+
+const STATION_SUMMON_BUILD_ALL: &str =
+  r#"$summon minecart $(x) $(y) $(z) {CustomName:"BuildAll"}"#;
 
 const STATION_TELEPORT_N: &str =
   r#"setblock ~ ~ ~ air
@@ -237,13 +274,43 @@ fn write_fixed_station_functions(out_path: &String) {
   );
 
   create_and_writeln(
-    &format!("{out_path}/x/station/incoming.mcfunction"),
-    complete_function_str(STATION_INCOMING)
+    &format!("{out_path}/x/station/incoming/n.mcfunction"),
+    complete_function_str(STATION_INCOMING_N)
   );
 
   create_and_writeln(
-    &format!("{out_path}/x/station/outgoing.mcfunction"),
-    complete_function_str(STATION_OUTGOING)
+    &format!("{out_path}/x/station/incoming/s.mcfunction"),
+    complete_function_str(STATION_INCOMING_S)
+  );
+
+  create_and_writeln(
+    &format!("{out_path}/x/station/incoming/w.mcfunction"),
+    complete_function_str(STATION_INCOMING_W)
+  );
+
+  create_and_writeln(
+    &format!("{out_path}/x/station/incoming/e.mcfunction"),
+    complete_function_str(STATION_INCOMING_E)
+  );
+
+  create_and_writeln(
+    &format!("{out_path}/x/station/outgoing/n.mcfunction"),
+    complete_function_str(STATION_OUTGOING_N)
+  );
+
+  create_and_writeln(
+    &format!("{out_path}/x/station/outgoing/s.mcfunction"),
+    complete_function_str(STATION_OUTGOING_S)
+  );
+
+  create_and_writeln(
+    &format!("{out_path}/x/station/outgoing/w.mcfunction"),
+    complete_function_str(STATION_OUTGOING_W)
+  );
+
+  create_and_writeln(
+    &format!("{out_path}/x/station/outgoing/e.mcfunction"),
+    complete_function_str(STATION_OUTGOING_E)
   );
 
   create_and_writeln(
@@ -271,6 +338,11 @@ fn write_fixed_station_functions(out_path: &String) {
     complete_function_str(STATION_SUMMON_E)
   );
 
+  create_and_writeln(
+    &format!("{out_path}/x/station/summon_build_all.mcfunction"),
+    complete_function_str(STATION_SUMMON_BUILD_ALL)
+  );
+  
   create_and_writeln(
     &format!("{out_path}/x/station/teleport/n.mcfunction"),
     complete_function_str(STATION_TELEPORT_N)

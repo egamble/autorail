@@ -47,7 +47,7 @@ fn station_sign_nearest_num(sign_text: &String) -> usize {
     }
   }
 
-  0
+  usize::MAX
 }
 
 
@@ -69,7 +69,7 @@ pub fn find_station_signs(blocks: &Vec<Block>, stations: &Vec<Station>) -> Vec<S
           coords: block.coords,
           belongs_to_station_id: nearest_station_id,
           refers_to_station_id: 0,
-          nearest_num: 0,
+          nearest_num: usize::MAX,
           distance: 0.0
         };
 
@@ -81,7 +81,14 @@ pub fn find_station_signs(blocks: &Vec<Block>, stations: &Vec<Station>) -> Vec<S
 
         station_sign.nearest_num = station_sign_nearest_num(&block.sign_text);
 
-        if station_sign.nearest_num > 0 {
+        if station_sign.nearest_num == 0 {
+          // indicates a "Summon BuildAll Cart" sign
+          station_signs.push(station_sign);
+          continue;
+        }
+
+
+        if station_sign.nearest_num != usize::MAX {
           (
             station_sign.refers_to_station_id,
             station_sign.distance

@@ -31,6 +31,7 @@ use crate::rail_system::find_stations::{find_stations};
 use crate::rail_system::find_station_signs::{find_station_signs};
 use crate::rail_system::find_switches::{find_switches};
 use crate::rail_system::find_distances::{find_distances};
+use crate::rail_system::find_buildall_directions::{find_buildall_directions};
 
 use crate::rail_functions::fixed_functions::{write_fixed_functions};
 use crate::rail_functions::system_functions::{write_system_functions};
@@ -108,7 +109,7 @@ fn main() {
   let switches = find_switches(&blocks, &rail_map);
 
   println!("Finding connections and shortest routes");
-  let (distances, rail_system_coords) =
+  let (distances, rail_system_coords, bidirectional_graph) =
     find_distances(
       &stations,
       &switches,
@@ -117,6 +118,12 @@ fn main() {
       &weights_map
     );
   
+  println!("Finding BuildAll directions");
+  let buildall_directions = find_buildall_directions(
+    &bidirectional_graph,
+    &switches
+  );
+
 
   // write functions
 
@@ -129,6 +136,7 @@ fn main() {
     &station_signs,
     &switches,
     &distances,
+    &buildall_directions,
     &functions_out_path
   );
   
@@ -148,6 +156,7 @@ fn main() {
       &rail_system_coords,
       &rail_map,
       &chunks,
+      &buildall_directions,
       &diagnostics_out_path
     );
   }

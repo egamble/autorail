@@ -16,7 +16,9 @@ use crate::common::{
   get_num_nodes,
   get_distance,
   realm_to_out_string,
-  find_nearest_station_id
+  find_nearest_station_id,
+  switch_node_id,
+  block_coords_to_file_name
 };
 
 
@@ -41,6 +43,11 @@ fn write_station_signs(stations: &Vec<Station>, station_signs: &Vec<StationSign>
   let mut writer = create_writer(out_path);
 
   for station_sign in station_signs {
+    if station_sign.nearest_num == 0 {
+      // skip "Summon BuildAll Cart" signs
+      continue;
+    }
+
     let (x, y, z, realm) = station_sign.coords;
 
     let refers_to_station_id = station_sign.refers_to_station_id;
@@ -78,6 +85,34 @@ fn write_switches(switches: &Vec<Switch>, out_path: &String) {
   }
 }
 
+fn write_buildall_directions(
+  buildall_directions: &Vec<Direction>,
+  switches: &Vec<Switch>,
+  out_path: &String
+) {
+  let mut writer = create_writer(out_path);
+
+  for switch_id in 0..switches.len() {
+    let switch = &switches[switch_id];
+    
+    writeln_out(&mut writer, out_path, format!("SW{}\t{}",
+                                               switch_id,
+                                               block_coords_to_file_name(switch.coords)));
+
+    for from_direction_index in 0..4 { // NSWE
+      if switch.has_directions[from_direction_index] {
+        let from_direction = Direction::from_usize(from_direction_index);
+        let to_direction = buildall_directions[switch_node_id(switch_id, from_direction_index, 0)];
+
+        let out_string = format!("\t{}->{}",
+                                 from_direction.to_str(),
+                                 to_direction.to_str()
+        );
+        writeln_out(&mut writer, out_path, out_string);
+      }
+    }
+  }
+}
 
 fn write_switches_nearest_station(
   switches: &Vec<Switch>,
@@ -208,6 +243,7 @@ pub fn write_diagnostics(
   rail_system_coords: &Vec<BlockCoords>,
   rail_map: &HashMap<BlockCoords, Block>,
   chunks: &Vec<(ChunkCoords, usize)>,
+  buildall_directions: &Vec<Direction>,
   diagnostics_out_path: &String
 ) {
   write_stations(
@@ -222,6 +258,11 @@ pub fn write_diagnostics(
   write_switches(
     &switches,
     &format!("{diagnostics_out_path}/switches.tsv"));
+
+  write_buildall_directions(
+    &buildall_directions,
+    &switches,
+    &format!("{diagnostics_out_path}/buildall-directions.tsv"));
   
   write_switches_nearest_station(
     &switches,

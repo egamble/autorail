@@ -17,6 +17,14 @@ fn station_sign_body(station_sign: &StationSign, stations: &Vec<Station>) -> Str
   let belongs_to_station = &stations[station_sign.belongs_to_station_id];
   let (x, y, z, _) = belongs_to_station.coords;
 
+  if station_sign.nearest_num == 0 {
+    let mut body = r#"***/x/station/summon_build_all {*1*}"#.to_string();
+
+    body = body.replace("*1*", format!("x:{},y:{},z:{}", x, (y as f64) + 0.5, z).as_str());
+
+    return body;
+  }
+  
   let mut body = r#"***/x/station/quick_select {*1*,direction:*2*,select_fn:*3*}"#.to_string();
 
   let mut x_offset = 0;
@@ -56,25 +64,33 @@ fn build_station_sign_body(
   let sign_coords = station_sign.coords;
   let (x, y, z, _) = sign_coords;
 
-  let refers_to_station = &stations[station_sign.refers_to_station_id];
-  let (row_1, row_2, row_3) = break_up_station_name(refers_to_station);
-
-  let eucl_distance = station_sign.distance.round();
-  let rail_distance = get_distance(
-    distances,
-    num_nodes,
-    station_sign.belongs_to_station_id,
-    station_sign.refers_to_station_id
-  );
-
+  let mut row_1 = EMPTY;
+  let row_2;
+  let mut row_3 = EMPTY;
   let mut row_4 = EMPTY;
 
-  if station_sign.nearest_num > 0 {
-    row_4 = format!("N{} E{} R{}",
-                    station_sign.nearest_num,
-                    if eucl_distance == f64::INFINITY {"∞".to_string()} else {eucl_distance.to_string()},
-                    if rail_distance == i32::MAX {"∞".to_string()} else {rail_distance.to_string()},
-    )
+  if station_sign.nearest_num == 0 {
+    row_2 = "Summon BuildAll".to_string();
+    row_4 = "N0".to_string();
+  } else {
+    let refers_to_station = &stations[station_sign.refers_to_station_id];
+    (row_1, row_2, row_3) = break_up_station_name(refers_to_station);
+
+    let eucl_distance = station_sign.distance.round();
+    let rail_distance = get_distance(
+      distances,
+      num_nodes,
+      station_sign.belongs_to_station_id,
+      station_sign.refers_to_station_id
+    );
+
+    if station_sign.nearest_num != usize::MAX {
+      row_4 = format!("N{} E{} R{}",
+                      station_sign.nearest_num,
+                      if eucl_distance == f64::INFINITY {"∞".to_string()} else {eucl_distance.to_string()},
+                      if rail_distance == i32::MAX {"∞".to_string()} else {rail_distance.to_string()},
+      )
+    }
   }
 
   body = body.replace("*1*", format!("{x} {y} {z}").as_str());

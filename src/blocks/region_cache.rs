@@ -12,9 +12,9 @@ fn read_region_data(region_coords: RegionCoords, world_dir: &String) -> Option<V
   let (x, z, realm) = region_coords;
 
   let realm_dir = match realm {
-    Realm::Overworld => "",
-    Realm::Nether => "/DIM-1",
-    Realm::End => "/DIM1",
+    Realm::Overworld => "/dimensions/minecraft/overworld",
+    Realm::Nether => "/dimensions/minecraft/the_nether",
+    Realm::End => "/dimensions/minecraft/the_end",
   };
   
   let region_path = format!("{}{}/region/r.{}.{}.mca", world_dir, realm_dir, x, z);

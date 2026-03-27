@@ -21,7 +21,7 @@ pub fn find_distances(
   rail_map: &HashMap<BlockCoords, Block>,
   ties_map: &HashMap<BlockCoords, (BlockCoords, Direction, Direction)>,
   weights_map: &HashMap<BlockCoords, i32>
-) -> (Vec<i32>, Vec<BlockCoords>) {
+) -> (Vec<i32>, Vec<BlockCoords>, Vec<usize>) {
   
   let num_stations = stations.len();
   let mut station_id_map: HashMap<BlockCoords, usize> = HashMap::new();
@@ -43,6 +43,8 @@ pub fn find_distances(
 
   let mut rail_system_coords: Vec<BlockCoords> = Vec::new();
 
+  let mut bidirectional_graph: Vec<usize> = vec![usize::MAX; num_nodes];
+  
   for from_station_id in 0..num_stations {
     let from_station = &stations[from_station_id];
 
@@ -73,6 +75,8 @@ pub fn find_distances(
 
     // Link the "from" station node to itself with zero distance.
     set_distance(&mut distances, num_nodes, from_station_id, from_station_id, 0);
+
+    bidirectional_graph[from_station_id] = to_node_id;
   }
 
   for from_switch_id in 0..num_switches {
@@ -102,9 +106,10 @@ pub fn find_distances(
         // depending on whether the "to" node is a station or a switch.
         let subtraction_distance = if is_switch_node(to_node_id, num_stations) {2} else {1};
 
+        let from_switch_node_id = switch_node_id(from_switch_id, from_direction_index, num_stations);
+        
         // Link the "from" switch node to the node that was found to be connected to it,
         // with the found distance minus the subtraction distance.
-        let from_switch_node_id = switch_node_id(from_switch_id, from_direction_index, num_stations);
         set_distance(&mut distances, num_nodes, from_switch_node_id, to_node_id, distance - subtraction_distance);
 
         // Link the "from" switch node to the other switch nodes on the same switch with distance 2,
@@ -121,13 +126,15 @@ pub fn find_distances(
 
         // Link the "from" switch node to itself with zero distance.
         set_distance(&mut distances, num_nodes, from_switch_node_id, from_switch_node_id, 0);
+
+        bidirectional_graph[from_switch_node_id] = to_node_id;
       }
     }
   }
 
   floyd_warshall(&mut distances, num_nodes);
 
-  (distances, rail_system_coords)
+  (distances, rail_system_coords, bidirectional_graph)
 }
 
 
