@@ -88,7 +88,7 @@ pub fn find_distances(
         let (to_node_id, distance, mut rail_connection_coords) =
           find_connection(
             from_switch.coords,
-            Direction::from_usize(from_direction_index),
+            Direction::from_index(from_direction_index),
             &station_id_map,
             &switch_id_map,
             rail_map,

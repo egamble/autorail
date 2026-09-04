@@ -229,7 +229,7 @@ fn write_select_range(
   let (begin, end) = range;
   
   for direction_index in 0..4 {
-    let direction = Direction::from_usize(direction_index);
+    let direction = Direction::from_index(direction_index);
       
     if begin == end {
       write_single_select_functions(stations, begin, next_range, direction, true, out_path);

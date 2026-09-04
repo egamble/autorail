@@ -69,7 +69,7 @@ fn switch_body(
     let mut shortest_distance = i32::MAX;
 
     for to_direction_index in 0..4 {
-      let to_direction = Direction::from_usize(to_direction_index);
+      let to_direction = Direction::from_index(to_direction_index);
       
       if to_direction != from_direction &&
         switch.has_directions[to_direction_index] {
@@ -95,7 +95,7 @@ fn switch_body(
   let mut max_to_direction = from_direction;
   
   for to_direction_index in 0..4 {
-    let to_direction = Direction::from_usize(to_direction_index);
+    let to_direction = Direction::from_index(to_direction_index);
       
     if to_direction != from_direction &&
       switch.has_directions[to_direction_index] &&
@@ -229,7 +229,7 @@ pub fn write_switch_functions(
 
     for direction_index in 0..4 {
       if switch.has_directions[direction_index] {
-        let direction = Direction::from_usize(direction_index);
+        let direction = Direction::from_index(direction_index);
 
         build_switches_body.push_str(
           add_build_switches_body(

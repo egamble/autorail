@@ -119,12 +119,17 @@ fn main() {
     );
   
   println!("Finding BuildAll directions");
-  let buildall_directions = find_buildall_directions(
-    &bidirectional_graph,
-    &switches
-  );
-
-
+  let buildall_directions =
+    match find_buildall_directions(&switches, &bidirectional_graph) {
+      Some(directions) => directions,
+      None => {
+        println!(
+          "Problem finding generated BuildAll directions; using default directions instead."
+        );   
+        vec![Direction::N; switches.len() * 4]
+      }
+    };
+  
   // write functions
 
   println!("\nWriting fixed functions");

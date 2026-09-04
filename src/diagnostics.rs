@@ -101,7 +101,7 @@ fn write_buildall_directions(
 
     for from_direction_index in 0..4 { // NSWE
       if switch.has_directions[from_direction_index] {
-        let from_direction = Direction::from_usize(from_direction_index);
+        let from_direction = Direction::from_index(from_direction_index);
         let to_direction = buildall_directions[switch_node_id(switch_id, from_direction_index, 0)];
 
         let out_string = format!("\t{}->{}",

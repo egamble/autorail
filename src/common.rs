@@ -32,7 +32,7 @@ pub type ChunkCoords = (i32, i32, Realm);
 pub type RegionCoords = (i32, i32, Realm);
 
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Eq)]
 pub enum Direction {
   N = 0,
   S = 1,
@@ -41,13 +41,13 @@ pub enum Direction {
 }
 
 impl Direction {
-  pub fn from_usize(value: usize) -> Direction {
-    match value {
+  pub fn from_index(d: usize) -> Direction {
+    match d {
       0 => Direction::N,
       1 => Direction::S,
       2 => Direction::W,
       3 => Direction::E,
-      _ => panic!("Can't convert to Direction: {}", value),
+      _ => panic!("Can't convert to Direction: {}", d),
     }
   }
 
