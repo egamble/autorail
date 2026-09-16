@@ -1101,7 +1101,7 @@ fn describe_state(
   if state < num_stations {
     return format!(
       "Station {}",
-      state + 1
+      state
     );
   }
 
@@ -1116,7 +1116,7 @@ fn describe_state(
 
   format!(
     "Switch {} {}",
-    switch_no + 1,
+    switch_no,
     Direction::from_index(
       direction_no
     ).to_str()
