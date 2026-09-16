@@ -235,6 +235,229 @@ fn write_chunks(
 }
 
 
+fn write_bidirectional_graph(
+  switches: &Vec<Switch>,
+  bidirectional_graph: &Vec<usize>,
+  out_path: &String
+) {
+  let mut writer = create_writer(out_path);
+
+  let format_index = |index: usize| -> String {
+    if index > bidirectional_graph.len() {
+      "-".to_string()
+    }
+    else {
+      format!("{}", index)
+    }
+  };
+
+  let num_switches = switches.len();
+
+  if bidirectional_graph.len() < 4 * num_switches {
+    let out_string = format!(
+      "ERROR\tgraph length {}\tless than 4 * num_switches {}",
+      bidirectional_graph.len(),
+      4 * num_switches
+    );
+
+    writeln_out(&mut writer, out_path, out_string);
+    return;
+  }
+
+  let num_stations =
+    bidirectional_graph.len() - 4 * num_switches;
+
+  // Header.
+  writeln_out(
+    &mut writer,
+    out_path,
+    "index\tindex_type\tvalue\tvalue_type".to_string()
+  );
+
+  for index in 0..bidirectional_graph.len() {
+
+    let value = bidirectional_graph[index];
+
+    let index_description =
+      graph_index_description(
+        index,
+        num_stations,
+        switches
+      );
+
+    let value_description =
+      if value < bidirectional_graph.len() {
+        graph_index_description(
+          value,
+          num_stations,
+          switches
+        )
+      } else {
+        "INVALID".to_string()
+      };
+
+    let out_string = format!(
+      "{}\t{}\t{}\t{}",
+      format_index(index),
+      index_description,
+      format_index(value),
+      value_description
+    );
+
+    writeln_out(
+      &mut writer,
+      out_path,
+      out_string
+    );
+  }
+
+  // Blank line before the reciprocity diagnostics.
+  writeln_out(
+    &mut writer,
+    out_path,
+    "".to_string()
+  );
+
+  writeln_out(
+    &mut writer,
+    out_path,
+    "RECIPROCITY CHECK".to_string()
+  );
+
+  writeln_out(
+    &mut writer,
+    out_path,
+    "index\tindex_type\tvalue\tvalue_type\treverse_value\treverse_value_type\tstatus"
+      .to_string()
+  );
+
+  for index in 0..bidirectional_graph.len() {
+
+    let value = bidirectional_graph[index];
+
+    if value >= bidirectional_graph.len() {
+
+      let index_description =
+        graph_index_description(
+          index,
+          num_stations,
+          switches
+        );
+
+      let out_string = format!(
+        "{}\t{}\t-\tINVALID\t-\t-\tINVALID VALUE",
+        format_index(index),
+        index_description,
+      );
+
+      writeln_out(
+        &mut writer,
+        out_path,
+        out_string
+      );
+
+      continue;
+    }
+
+    let reverse_value = bidirectional_graph[value];
+
+    let index_description =
+      graph_index_description(
+        index,
+        num_stations,
+        switches
+      );
+
+    let value_description =
+      graph_index_description(
+        value,
+        num_stations,
+        switches
+      );
+
+    let reverse_description =
+      if reverse_value < bidirectional_graph.len() {
+        graph_index_description(
+          reverse_value,
+          num_stations,
+          switches
+        )
+      } else {
+        "INVALID".to_string()
+      };
+
+    let status =
+      if reverse_value == index {
+        "OK"
+      } else {
+        "ASYMMETRY"
+      };
+
+    let out_string = format!(
+      "{}\t{}\t{}\t{}\t{}\t{}\t{}",
+      format_index(index),
+      index_description,
+      format_index(value),
+      value_description,
+      format_index(reverse_value),
+      reverse_description,
+      status
+    );
+
+    writeln_out(
+      &mut writer,
+      out_path,
+      out_string
+    );
+  }
+}
+
+
+fn graph_index_description(
+  index: usize,
+  num_stations: usize,
+  switches: &Vec<Switch>
+) -> String {
+
+  if index < num_stations {
+    return format!("Station {}", index);
+  }
+
+  let port_index = index - num_stations;
+
+  let switch_number = port_index / 4;
+  let direction_number = port_index % 4;
+
+  if switch_number >= switches.len() {
+    return "INVALID".to_string();
+  }
+
+  let direction_name = match direction_number {
+    0 => "N",
+    1 => "S",
+    2 => "W",
+    3 => "E",
+    _ => unreachable!()
+  };
+
+  if switches[switch_number]
+    .has_directions[direction_number]
+  {
+    format!(
+      "Switch {} {}",
+      switch_number,
+      direction_name
+    )
+  } else {
+    format!(
+      "Switch {} {} UNUSED",
+      switch_number,
+      direction_name
+    )
+  }
+}
+
+
 pub fn write_diagnostics(
   stations: &Vec<Station>,
   station_signs: &Vec<StationSign>,
@@ -244,6 +467,7 @@ pub fn write_diagnostics(
   rail_map: &HashMap<BlockCoords, Block>,
   chunks: &Vec<(ChunkCoords, usize)>,
   buildall_directions: &Vec<Direction>,
+  bidirectional_graph: &Vec<usize>,
   diagnostics_out_path: &String
 ) {
   write_stations(
@@ -281,4 +505,9 @@ pub fn write_diagnostics(
   write_chunks(
     &chunks,
     &format!("{diagnostics_out_path}/chunks.tsv"));
+
+  write_bidirectional_graph(
+    &switches,
+    &bidirectional_graph,
+    &format!("{diagnostics_out_path}/bidirectional_graph.tsv"));
 }

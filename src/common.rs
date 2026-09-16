@@ -50,7 +50,7 @@ impl Direction {
       _ => panic!("Can't convert to Direction: {}", d),
     }
   }
-
+  
   pub fn opposite_direction(&self) -> Direction {
     match &self {
       Direction::N => Direction::S,

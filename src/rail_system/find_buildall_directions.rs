@@ -1,775 +1,1157 @@
-use crate::common::{Direction, Switch};
-use crate::common::{
-  switch_node_id
-};
+use crate::common::{Direction, Station, Switch};
+use crate::common::switch_node_id;
 
 
-#[derive(Clone, Copy, Debug)]
-struct HalfEdge {
-    /// The doubled physical edge this half-edge belongs to.
-    edge: usize,
-
-    /// The other half-edge of the same doubled edge.
-    twin: usize,
-
-    /// Vertex at this end of the edge.
-    vertex: usize,
-
-    /// If this is a switch end, the corresponding direction.
-    /// None means this is a station end.
-    switch_direction: Option<usize>,
-}
-
-#[derive(Clone, Copy, Debug)]
-struct Pair {
-    a: usize,
-    b: usize,
-}
-
-
-/// Finds the switch directions for "build all".
+/// Finds the switch directions for "BuildAll".
 ///
-/// The returned vector has length switches.len() * 4.
-/// For switch `s` and incoming direction `d`,
+/// `bidirectional_graph` is a directed state graph.
 ///
-///     result[4 * s + d]
+/// Stations are graph states in [0, num_stations).
 ///
-/// gives the direction in which the cart should leave the switch.
+/// Switch ports are graph states after the station states:
 ///
-/// Entries corresponding to directions for which
-/// `switches[s].has_directions[d] == false` are left as Direction::N.
+///   num_stations + switch_no * 4 + direction
 ///
-/// Returns None if the graph is malformed, disconnected, or no suitable
-/// transition system can be constructed.
+/// When the cart arrives at a switch through direction `in`:
+///
+///   cart arrives at switch `in`
+///       -> choose a different existing direction `out`
+///       -> bidirectional_graph[out] is the next state
+///
+/// The generated route satisfies:
+///
+///   * every station is visited
+///   * every switch is visited
+///   * no graph state is visited twice, except the final return
+///     to the starting state
+///   * no outgoing switch port is used more than once
+///   * a switch never immediately reverses direction
+///
+/// Incoming switch-port states which are not part of the route are
+/// filled with arbitrary legal directions. They do not affect the
+/// BuildAll route because the route never enters those states.
 pub fn find_buildall_directions(
-    switches: &Vec<Switch>,
-    bidirectional_graph: &Vec<usize>,
+  switches: &Vec<Switch>,
+  bidirectional_graph: &Vec<usize>,
 ) -> Option<Vec<Direction>> {
-    let num_switches = switches.len();
+  let num_switches = switches.len();
 
-    if bidirectional_graph.len() < 4 * num_switches {
-        return None;
+  if bidirectional_graph.len() < 4 * num_switches {
+    println!(
+      "Cannot find BuildAll directions: graph is too short."
+    );
+    return None;
+  }
+
+  let num_stations =
+    bidirectional_graph.len() - 4 * num_switches;
+
+  let graph_len = bidirectional_graph.len();
+
+  if let Err(error) = validate_input_graph(
+    switches,
+    bidirectional_graph,
+  ) {
+    println!(
+      "Cannot find BuildAll directions: {}",
+      error
+    );
+    return None;
+  }
+
+  // A BuildAll route may start at a station or at an actual
+  // switch port.
+  let possible_starts =
+    build_possible_starts(
+      switches,
+      num_stations,
+    );
+
+  // Try every possible starting state.
+  //
+  // We deliberately keep the starting state internal. The public
+  // result is only the direction table, so the verifier below
+  // independently searches for a valid route through that table.
+  for start in possible_starts {
+    let mut visited_states =
+      vec![false; graph_len];
+
+    let mut visited_stations =
+      vec![false; num_stations];
+
+    let mut visited_switches =
+      vec![false; num_switches];
+
+    // One entry for every switch/incoming-direction pair.
+    //
+    // The index is:
+    //
+    //   switch_no * 4 + incoming_direction
+    //
+    // Some entries may remain None if that incoming port was not
+    // encountered by the successful route.
+    let mut chosen_directions =
+      vec![None::<usize>; num_switches * 4];
+
+    // Absolute graph-state index of the outgoing switch port.
+    //
+    // This prevents two different incoming ports from consuming
+    // the same outgoing port.
+    let mut used_outgoing_ports =
+      vec![false; graph_len];
+
+    if let Some(directions) = search_buildall_route(
+      start,
+      start,
+      switches,
+      bidirectional_graph,
+      num_stations,
+      &mut visited_states,
+      &mut visited_stations,
+      &mut visited_switches,
+      &mut chosen_directions,
+      &mut used_outgoing_ports,
+      0,
+    ) {
+      return Some(directions);
     }
+  }
 
-    let num_stations =
-        bidirectional_graph.len() - 4 * num_switches;
-
-    let num_vertices = num_stations + num_switches;
-    
-    let vertex_of_index = |index: usize| -> Option<usize> {
-        if index < num_stations {
-            // Station.
-            Some(index)
-        } else if index < num_stations + 4 * num_switches {
-            // Switch port.
-            let p = index - num_stations;
-            Some(num_stations + p / 4)
-        } else {
-            None
-        }
-    };
-
-    // ------------------------------------------------------------
-    // Validate the switch data.
-    // ------------------------------------------------------------
-
-    for (s, sw) in switches.iter().enumerate() {
-        let mut degree = 0;
-
-        for d in 0..4 {
-            let index = switch_node_id(s, d, num_stations);
-
-            if sw.has_directions[d] {
-                degree += 1;
-
-                if bidirectional_graph[index] >= bidirectional_graph.len() {
-                    return None;
-                }
-
-                // The connection should lead to a station or a
-                // valid switch port.
-                if vertex_of_index(bidirectional_graph[index]).is_none() {
-                    return None;
-                }
-            }
-        }
-
-        // Your junctions have 3 or 4 connections.
-        if degree != 3 && degree != 4 {
-            return None;
-        }
-
-        // There should be no graph entry for a nonexistent port.
-        for d in 0..4 {
-            if !sw.has_directions[d] {
-                let index = switch_node_id(s, d, num_stations);
-
-                // We don't strictly require this to be a sentinel,
-                // so we don't reject it.
-                let _ = index;
-            }
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Build the underlying undirected edge list.
-    //
-    // Every physical track becomes one edge.
-    //
-    // A switch-switch connection appears twice in
-    // bidirectional_graph, so only add it once.
-    //
-    // A switch-station connection appears once from the switch.
-    // ------------------------------------------------------------
-
-    #[derive(Clone, Copy, Debug)]
-    struct PhysicalEdge {
-        a: usize,
-        b: usize,
-
-        // The direction/port at each end, if that end is a switch.
-        a_direction: Option<usize>,
-        b_direction: Option<usize>,
-    }
-
-    let mut physical_edges = Vec::<PhysicalEdge>::new();
-
-    for s in 0..num_switches {
-        for d in 0..4 {
-            if !switches[s].has_directions[d] {
-                continue;
-            }
-
-            let p = switch_node_id(s, d, num_stations);
-            let other = bidirectional_graph[p];
-
-            if other >= bidirectional_graph.len() {
-                return None;
-            }
-
-            let a = num_stations + s;
-
-            if other < num_stations {
-                // Switch -> station.
-                //
-                // This edge is encountered only once, so add it.
-                physical_edges.push(PhysicalEdge {
-                    a,
-                    b: other,
-                    a_direction: Some(d),
-                    b_direction: None,
-                });
-            } else {
-                // Switch -> switch port.
-                let other_port = other - num_stations;
-                let other_switch = other_port / 4;
-                let other_direction = other_port % 4;
-
-                if other_switch >= num_switches {
-                    return None;
-                }
-
-                // Check that the other end really points back.
-                let other_index =
-                    switch_node_id(other_switch, other_direction, num_stations);
-
-                if bidirectional_graph[other_index] != p {
-                    return None;
-                }
-
-                let b = num_stations + other_switch;
-
-                // Only add the connection once.
-                if p < other {
-                    physical_edges.push(PhysicalEdge {
-                        a,
-                        b,
-                        a_direction: Some(d),
-                        b_direction: Some(other_direction),
-                    });
-                }
-            }
-        }
-    }
-
-    if physical_edges.is_empty() {
-        // No tracks. There is nothing meaningful to build.
-        return Some(vec![Direction::N; num_switches * 4]);
-    }
-
-    // ------------------------------------------------------------
-    // Make sure all relevant vertices belong to one connected
-    // component.
-    // ------------------------------------------------------------
-
-    let mut adjacency = vec![Vec::<usize>::new(); num_vertices];
-
-    for e in &physical_edges {
-        adjacency[e.a].push(e.b);
-        adjacency[e.b].push(e.a);
-    }
-
-    let start = physical_edges[0].a;
-
-    let mut seen_vertex = vec![false; num_vertices];
-    let mut stack = vec![start];
-
-    while let Some(v) = stack.pop() {
-        if seen_vertex[v] {
-            continue;
-        }
-
-        seen_vertex[v] = true;
-
-        for &w in &adjacency[v] {
-            if !seen_vertex[w] {
-                stack.push(w);
-            }
-        }
-    }
-
-    for v in 0..num_vertices {
-        if !adjacency[v].is_empty() && !seen_vertex[v] {
-            return None;
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Double every physical edge.
-    //
-    // This produces an Eulerian multigraph:
-    //
-    //   original edge e
-    //
-    // becomes
-    //
-    //   e_0
-    //   e_1
-    //
-    // At a switch, the two copies of the same physical edge
-    // form one forbidden group.
-    //
-    // At a station there is no forbidden transition: the two
-    // copies simply have to be paired so that the cart turns
-    // around at the station.
-    // ------------------------------------------------------------
-
-    let mut half_edges = Vec::<HalfEdge>::new();
-
-    // For every physical edge we store its two doubled copies.
-    //
-    // Each copy has two half-edges.
-    //
-    // copy_half_edges[edge][copy][endpoint]
-    //
-    // but we flatten this into vectors for convenience.
-    let mut copies: Vec<[usize; 2]> = Vec::new();
-
-    for (edge_no, e) in physical_edges.iter().enumerate() {
-        let mut edge_copies = [0usize; 2];
-
-        for copy in 0..2 {
-            let h0 = half_edges.len();
-            let h1 = h0 + 1;
-
-            half_edges.push(HalfEdge {
-                edge: edge_no,
-                twin: h1,
-                vertex: e.a,
-                switch_direction: e.a_direction,
-            });
-
-            half_edges.push(HalfEdge {
-                edge: edge_no,
-                twin: h0,
-                vertex: e.b,
-                switch_direction: e.b_direction,
-            });
-
-            edge_copies[copy] = h0;
-        }
-
-        copies.push(edge_copies);
-    }
-
-    let num_half_edges = half_edges.len();
-
-    // ------------------------------------------------------------
-    // Incident half-edges at each vertex.
-    // ------------------------------------------------------------
-
-    let mut incident = vec![Vec::<usize>::new(); num_vertices];
-
-    for h in 0..num_half_edges {
-        incident[half_edges[h].vertex].push(h);
-    }
-
-    // Every vertex in the doubled graph has even degree.
-    for v in 0..num_vertices {
-        if incident[v].len() % 2 != 0 {
-            return None;
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Create the initial transition pairing.
-    //
-    // pair[h] = the half-edge paired with h at the same vertex.
-    //
-    // At a switch:
-    //
-    //   group = the two copies of one physical edge
-    //
-    // We arrange groups consecutively:
-    //
-    //   e e f f g g ...
-    //
-    // and pair the first half with the corresponding half in
-    // the second half:
-    //
-    //   e-f
-    //   e-g
-    //   f-g
-    //
-    // This guarantees that no pair belongs to the same
-    // physical-edge group.
-    //
-    // This is the construction in Kotzig's theorem.
-    // ------------------------------------------------------------
-
-    let mut pair = vec![usize::MAX; num_half_edges];
-
-    for v in 0..num_vertices {
-        let inc = &incident[v];
-
-        if inc.is_empty() {
-            continue;
-        }
-
-        // Station:
-        //
-        // It has one physical edge and therefore two copies.
-        // Pair those copies. This means:
-        //
-        //     switch -> station -> switch
-        //
-        // which is exactly the desired station reversal.
-        if v < num_stations {
-            if inc.len() != 2 {
-                return None;
-            }
-
-            pair[inc[0]] = inc[1];
-            pair[inc[1]] = inc[0];
-
-            continue;
-        }
-
-        // Switch.
-        //
-        // Build groups of the two copies belonging to each
-        // physical edge.
-        let mut groups: Vec<Vec<usize>> = Vec::new();
-        let mut used = vec![false; inc.len()];
-
-        for i in 0..inc.len() {
-            if used[i] {
-                continue;
-            }
-
-            let h = inc[i];
-            let edge = half_edges[h].edge;
-
-            let mut group = Vec::new();
-
-            for j in i..inc.len() {
-                let h2 = inc[j];
-
-                if !used[j] && half_edges[h2].edge == edge {
-                    used[j] = true;
-                    group.push(h2);
-                }
-            }
-
-            // A normal non-loop physical edge contributes two
-            // half-edges at this switch, one for each copy.
-            if group.len() != 2 {
-                // This catches an unsupported physical loop from
-                // a switch back to itself.
-                return None;
-            }
-
-            groups.push(group);
-        }
-
-        let d = inc.len() / 2;
-
-        if groups.len() != d {
-            return None;
-        }
-
-        // Flatten the groups.
-        let mut ordered = Vec::with_capacity(inc.len());
-
-        for g in groups {
-            ordered.extend(g);
-        }
-
-        debug_assert_eq!(ordered.len(), inc.len());
-
-        for i in 0..d {
-            let a = ordered[i];
-            let b = ordered[i + d];
-
-            // They must belong to different physical edges.
-            if half_edges[a].edge == half_edges[b].edge {
-                return None;
-            }
-
-            pair[a] = b;
-            pair[b] = a;
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Sanity check that every half-edge has exactly one partner.
-    // ------------------------------------------------------------
-
-    if pair.iter().any(|&p| p == usize::MAX) {
-        return None;
-    }
-
-    for h in 0..num_half_edges {
-        if pair[pair[h]] != h {
-            return None;
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Repeatedly merge the cycles of the transition system.
-    //
-    // Following:
-    //
-    //     h -> twin(h) -> pair(twin(h))
-    //
-    // traces one closed trail.
-    //
-    // If there are multiple cycles, find two cycles sharing
-    // a switch or station and splice them.
-    // ------------------------------------------------------------
-
-    loop {
-        let cycle_id = compute_cycle_ids(&half_edges, &pair);
-
-        let number_of_cycles = cycle_id
-            .iter()
-            .copied()
-            .max()
-            .map(|x| x + 1)
-            .unwrap_or(0);
-
-        if number_of_cycles <= 1 {
-            break;
-        }
-
-        let mut merged = false;
-
-        // --------------------------------------------------------
-        // Try every vertex.
-        //
-        // At a vertex, every transition pair represents one visit
-        // to that vertex in the current cycle decomposition.
-        // --------------------------------------------------------
-
-        for v in 0..num_vertices {
-            let inc = &incident[v];
-
-            // Get one representative of every transition pair.
-            let mut transitions = Vec::<Pair>::new();
-
-            for &h in inc {
-                let p = pair[h];
-
-                if h < p {
-                    transitions.push(Pair { a: h, b: p });
-                }
-            }
-
-            // Try two transition pairs belonging to different
-            // cycles.
-            'outer: for i in 0..transitions.len() {
-                for j in (i + 1)..transitions.len() {
-                    let t1 = transitions[i];
-                    let t2 = transitions[j];
-
-                    let c1 = cycle_id[t1.a];
-                    let c2 = cycle_id[t2.a];
-
-                    if c1 == c2 {
-                        continue;
-                    }
-
-                    let a = t1.a;
-                    let b = t1.b;
-                    let c = t2.a;
-                    let d = t2.b;
-
-                    // There are two ways to cross-splice:
-                    //
-                    //   (a,c) (b,d)
-                    //
-                    // or
-                    //
-                    //   (a,d) (b,c)
-                    //
-                    // Try the first.
-                    if different_groups(
-                        &half_edges,
-                        a,
-                        c,
-                    ) && different_groups(
-                        &half_edges,
-                        b,
-                        d,
-                    ) {
-                        pair[a] = c;
-                        pair[c] = a;
-                        pair[b] = d;
-                        pair[d] = b;
-
-                        merged = true;
-                        break 'outer;
-                    }
-
-                    // Try the second.
-                    if different_groups(
-                        &half_edges,
-                        a,
-                        d,
-                    ) && different_groups(
-                        &half_edges,
-                        b,
-                        c,
-                    ) {
-                        pair[a] = d;
-                        pair[d] = a;
-                        pair[b] = c;
-                        pair[c] = b;
-
-                        merged = true;
-                        break 'outer;
-                    }
-                }
-            }
-
-            if merged {
-                break;
-            }
-        }
-
-        if !merged {
-            // In the normal degree-3/4 case this should not happen
-            // for a connected graph satisfying our assumptions.
-            return None;
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Convert the final Euler tour into switch transitions.
-    //
-    // During traversal:
-    //
-    //     current half-edge
-    //          |
-    //          v
-    //     traverse its edge
-    //          |
-    //          v
-    //     arrive via twin(current)
-    //          |
-    //          v
-    //     pair[twin(current)]
-    //
-    // If the arrival is at a switch, the latter is the outgoing
-    // half-edge.
-    // ------------------------------------------------------------
-
-    let mut buildall_directions =
-        vec![Direction::N; num_switches * 4];
-
-    let start = 0usize;
-    let mut current = start;
-    let mut visited_half_edges = vec![false; num_half_edges];
-
-    loop {
-        if visited_half_edges[current] {
-            break;
-        }
-
-        visited_half_edges[current] = true;
-
-        let arrival = half_edges[current].twin;
-        let arrival_vertex = half_edges[arrival].vertex;
-
-        let outgoing = pair[arrival];
-
-        if arrival_vertex >= num_stations {
-            // We have arrived at a switch.
-            let switch_no = arrival_vertex - num_stations;
-
-            let in_direction_index = half_edges[arrival]
-                .switch_direction?;
-
-            let out_direction_index = half_edges[outgoing]
-                .switch_direction?;
-
-            // The outgoing edge must actually belong to the same
-            // switch.
-            if half_edges[outgoing].vertex != arrival_vertex {
-                return None;
-            }
-
-            // Most importantly, incoming and outgoing physical
-            // edges must differ.
-            if half_edges[arrival].edge ==
-                half_edges[outgoing].edge
-            {
-                return None;
-            }
-
-            buildall_directions[switch_node_id(switch_no, in_direction_index, 0)] =
-                Direction::from_index(out_direction_index);
-        } else {
-            // Station.
-            //
-            // We don't output anything here. The station pairing
-            // already forces the cart to reverse.
-        }
-
-        current = outgoing;
-    }
-
-    // We must have traversed every doubled edge.
-    if visited_half_edges.iter().any(|&x| !x) {
-        return None;
-    }
-
-    // ------------------------------------------------------------
-    // Validate that every real switch direction got assigned.
-    // ------------------------------------------------------------
-
-    for s in 0..num_switches {
-        for d in 0..4 {
-            if switches[s].has_directions[d] {
-                // A valid output direction cannot be the placeholder
-                // N merely because N happens to be the first enum
-                // value. Check by reconstructing whether the slot
-                // has actually been encountered.
-                //
-                // We do this with a separate traversal below.
-            }
-        }
-    }
-
-    // More robustly validate by traversing again and counting
-    // incoming directions.
-    let mut assigned = vec![false; num_switches * 4];
-
-    current = start;
-
-    loop {
-        if visited_half_edges[current] == false {
-            // Should never happen.
-            return None;
-        }
-
-        // We need a separate stopping condition because
-        // `visited_half_edges` is already populated.
-        break;
-    }
-
-    // Instead of relying on the placeholder value, reconstruct
-    // assignments from the transition system directly.
-    for s in 0..num_switches {
-        for d in 0..4 {
-            if !switches[s].has_directions[d] {
-                continue;
-            }
-
-            let mut found = 0;
-
-            for h in 0..num_half_edges {
-                if half_edges[h].vertex
-                    == num_stations + s
-                    && half_edges[h].switch_direction
-                        == Some(d)
-                {
-                    found += 1;
-                }
-            }
-
-            if found != 2 {
-                return None;
-            }
-
-            assigned[4 * s + d] = true;
-        }
-    }
-
-    Some(buildall_directions)
+  println!("No BuildAll route found.");
+  None
 }
 
-
-/// Returns true iff two half-edges belong to different original
-/// physical edges.
-///
-/// At a switch this is exactly the "don't immediately reverse
-/// along the same track" condition.
-fn different_groups(
-    half_edges: &[HalfEdge],
-    a: usize,
-    b: usize,
-) -> bool {
-    half_edges[a].edge != half_edges[b].edge
-}
-
-
-/// Compute the cycle containing every half-edge.
-///
-/// The successor relation is:
-///
-///     h -> twin(h) -> pair(twin(h))
-///
-/// so the actual successor half-edge is pair[twin(h)].
-fn compute_cycle_ids(
-    half_edges: &[HalfEdge],
-    pair: &[usize],
+/// Build every state at which BuildAll may legally start.
+fn build_possible_starts(
+  switches: &[Switch],
+  num_stations: usize,
 ) -> Vec<usize> {
-    let n = half_edges.len();
+  let mut starts = Vec::<usize>::new();
 
-    let mut cycle_id = vec![usize::MAX; n];
-    let mut next_cycle = 0usize;
+  // Stations.
+  for station in 0..num_stations {
+    starts.push(station);
+  }
 
-    for start in 0..n {
-        if cycle_id[start] != usize::MAX {
-            continue;
-        }
+  // Actual switch ports.
+  for switch_no in 0..switches.len() {
+    for direction in 0..4 {
+      if switches[switch_no].has_directions[direction] {
+        starts.push(
+          switch_node_id(
+            switch_no,
+            direction,
+            num_stations,
+          )
+        );
+      }
+    }
+  }
 
-        let mut h = start;
+  starts
+}
 
-        loop {
-            if cycle_id[h] != usize::MAX {
-                break;
-            }
+/// Recursive backtracking search.
+///
+/// The search constructs one simple closed BuildAll route.
+///
+/// A graph state may only occur once in the route, except that
+/// `start` may occur once more as the final destination.
+///
+/// `used_outgoing_ports` is separate from `visited_states` because
+/// two different incoming switch ports may otherwise select the
+/// same outgoing physical port.
+fn search_buildall_route(
+  start: usize,
+  current: usize,
+  switches: &[Switch],
+  bidirectional_graph: &[usize],
+  num_stations: usize,
+  visited_states: &mut Vec<bool>,
+  visited_stations: &mut Vec<bool>,
+  visited_switches: &mut Vec<bool>,
+  chosen_directions: &mut Vec<Option<usize>>,
+  used_outgoing_ports: &mut Vec<bool>,
+  depth: usize,
+) -> Option<Vec<Direction>> {
+  let num_switches = switches.len();
+  let graph_len = bidirectional_graph.len();
 
-            cycle_id[h] = next_cycle;
+  if depth > graph_len {
+    return None;
+  }
 
-            let arrival = half_edges[h].twin;
-            h = pair[arrival];
-        }
+  // ------------------------------------------------------------
+  // Already visited state.
+  // ------------------------------------------------------------
 
-        next_cycle += 1;
+  if visited_states[current] {
+    // The only legal repeated state is the starting state,
+    // reached after at least one transition.
+    if current != start || depth == 0 {
+      return None;
     }
 
-    cycle_id
+    if all_vertices_visited(
+      visited_stations,
+      visited_switches,
+    ) {
+      return build_direction_vector(
+        switches,
+        chosen_directions,
+      );
+    }
+
+    return None;
+  }
+
+  visited_states[current] = true;
+
+  // ------------------------------------------------------------
+  // Station
+  // ------------------------------------------------------------
+
+  if current < num_stations {
+    let station = current;
+
+    let was_station_visited =
+      visited_stations[station];
+
+    visited_stations[station] = true;
+
+    let next = bidirectional_graph[current];
+
+    if next >= graph_len {
+      visited_states[current] = false;
+      visited_stations[station] =
+        was_station_visited;
+      return None;
+    }
+
+    if next == start {
+      if all_vertices_visited(
+        visited_stations,
+        visited_switches,
+      ) {
+        return build_direction_vector(
+          switches,
+          chosen_directions,
+        );
+      }
+    } else if !visited_states[next] {
+      if let Some(result) =
+        search_buildall_route(
+          start,
+          next,
+          switches,
+          bidirectional_graph,
+          num_stations,
+          visited_states,
+          visited_stations,
+          visited_switches,
+          chosen_directions,
+          used_outgoing_ports,
+          depth + 1,
+        )
+      {
+        return Some(result);
+      }
+    }
+
+    visited_states[current] = false;
+    visited_stations[station] =
+      was_station_visited;
+
+    return None;
+  }
+
+  // ------------------------------------------------------------
+  // Switch port
+  // ------------------------------------------------------------
+
+  let relative =
+    current - num_stations;
+
+  let switch_no =
+    relative / 4;
+
+  let incoming_direction =
+    relative % 4;
+
+  if switch_no >= num_switches {
+    visited_states[current] = false;
+    return None;
+  }
+
+  if !switches[switch_no]
+    .has_directions[incoming_direction]
+  {
+    visited_states[current] = false;
+    return None;
+  }
+
+  let was_switch_visited =
+    visited_switches[switch_no];
+
+  visited_switches[switch_no] = true;
+
+  let direction_slot =
+    switch_no * 4 + incoming_direction;
+
+  // ------------------------------------------------------------
+  // This incoming port has already been assigned.
+  // ------------------------------------------------------------
+
+  if let Some(outgoing_direction) =
+    chosen_directions[direction_slot]
+  {
+    let outgoing_port =
+      switch_node_id(
+        switch_no,
+        outgoing_direction,
+        num_stations,
+      );
+
+    if used_outgoing_ports[outgoing_port] {
+      visited_states[current] = false;
+      visited_switches[switch_no] =
+        was_switch_visited;
+      return None;
+    }
+
+    let next =
+      bidirectional_graph[outgoing_port];
+
+    if next >= graph_len {
+      visited_states[current] = false;
+      visited_switches[switch_no] =
+        was_switch_visited;
+      return None;
+    }
+
+    used_outgoing_ports[outgoing_port] = true;
+
+    if next == start {
+      if all_vertices_visited(
+        visited_stations,
+        visited_switches,
+      ) {
+        return build_direction_vector(
+          switches,
+          chosen_directions,
+        );
+      }
+    } else if !visited_states[next] {
+      if let Some(result) =
+        search_buildall_route(
+          start,
+          next,
+          switches,
+          bidirectional_graph,
+          num_stations,
+          visited_states,
+          visited_stations,
+          visited_switches,
+          chosen_directions,
+          used_outgoing_ports,
+          depth + 1,
+        )
+      {
+        return Some(result);
+      }
+    }
+
+    used_outgoing_ports[outgoing_port] =
+      false;
+
+    visited_states[current] = false;
+    visited_switches[switch_no] =
+      was_switch_visited;
+
+    return None;
+  }
+
+  // ------------------------------------------------------------
+  // Try every legal outgoing direction.
+  //
+  // Prefer transitions which enter a previously unvisited
+  // station/switch.
+  // ------------------------------------------------------------
+
+  for prefer_unvisited in [true, false] {
+    for outgoing_direction in 0..4 {
+      // No immediate U-turn at a switch.
+      if outgoing_direction == incoming_direction {
+        continue;
+      }
+
+      // Outgoing direction must physically exist.
+      if !switches[switch_no]
+        .has_directions[outgoing_direction]
+      {
+        continue;
+      }
+
+      let outgoing_port =
+        switch_node_id(
+          switch_no,
+          outgoing_direction,
+          num_stations,
+        );
+
+      // This physical outgoing port has already been consumed
+      // by another transition in this candidate route.
+      if used_outgoing_ports[outgoing_port] {
+        continue;
+      }
+
+      let next =
+        bidirectional_graph[outgoing_port];
+
+      if next >= graph_len {
+        continue;
+      }
+
+      // A state cannot be revisited, except for the starting
+      // state as the final destination.
+      if next != start
+        && visited_states[next]
+      {
+        continue;
+      }
+
+      let next_is_new_vertex =
+        is_new_vertex(
+          next,
+          num_stations,
+          visited_stations,
+          visited_switches,
+        );
+
+      if prefer_unvisited
+        && !next_is_new_vertex
+      {
+        continue;
+      }
+
+      if !prefer_unvisited
+        && next_is_new_vertex
+      {
+        continue;
+      }
+
+      // Choose this transition.
+      chosen_directions[direction_slot] =
+        Some(outgoing_direction);
+
+      used_outgoing_ports[outgoing_port] =
+        true;
+
+      let result =
+        if next == start {
+          if all_vertices_visited(
+            visited_stations,
+            visited_switches,
+          ) {
+            build_direction_vector(
+              switches,
+              chosen_directions,
+            )
+          } else {
+            None
+          }
+        } else {
+          search_buildall_route(
+            start,
+            next,
+            switches,
+            bidirectional_graph,
+            num_stations,
+            visited_states,
+            visited_stations,
+            visited_switches,
+            chosen_directions,
+            used_outgoing_ports,
+            depth + 1,
+          )
+        };
+
+      if let Some(result) = result {
+        return Some(result);
+      }
+
+      // Backtrack both pieces of state.
+      used_outgoing_ports[outgoing_port] =
+        false;
+
+      chosen_directions[direction_slot] =
+        None;
+    }
+  }
+
+  // ------------------------------------------------------------
+  // No transition worked from this state.
+  // ------------------------------------------------------------
+
+  visited_states[current] = false;
+  visited_switches[switch_no] =
+    was_switch_visited;
+
+  None
+}
+
+/// Returns true if `state` belongs to a station or switch which
+/// has not yet been visited.
+fn is_new_vertex(
+  state: usize,
+  num_stations: usize,
+  visited_stations: &[bool],
+  visited_switches: &[bool],
+) -> bool {
+  if state < num_stations {
+    return !visited_stations[state];
+  }
+
+  let relative =
+    state - num_stations;
+
+  let switch_no =
+    relative / 4;
+
+  if switch_no >= visited_switches.len() {
+    return false;
+  }
+
+  !visited_switches[switch_no]
+}
+
+/// Returns true when every station and switch has been visited.
+fn all_vertices_visited(
+  visited_stations: &[bool],
+  visited_switches: &[bool],
+) -> bool {
+  visited_stations.iter().all(|&x| x)
+    && visited_switches.iter().all(|&x| x)
+}
+
+/// Convert the route's partial transition table into the public
+/// direction vector.
+///
+/// Ports which were not encountered by the successful route get
+/// an arbitrary legal direction. Those entries are deliberately
+/// not required to participate in the BuildAll cycle.
+fn build_direction_vector(
+  switches: &[Switch],
+  chosen_directions: &[Option<usize>],
+) -> Option<Vec<Direction>> {
+  let num_switches = switches.len();
+
+  let mut result =
+    vec![Direction::N; num_switches * 4];
+
+  for switch_no in 0..num_switches {
+    for incoming_direction in 0..4 {
+      if !switches[switch_no]
+        .has_directions[incoming_direction]
+      {
+        continue;
+      }
+
+      let slot =
+        switch_no * 4 + incoming_direction;
+
+      let outgoing_direction =
+        if let Some(direction) =
+          chosen_directions[slot]
+        {
+          direction
+        } else {
+          // This port was not part of the BuildAll route.
+          //
+          // Give it any legal non-reversing direction.
+          let mut fallback = None;
+
+          for direction in 0..4 {
+            if direction != incoming_direction
+              && switches[switch_no]
+                .has_directions[direction]
+            {
+              fallback = Some(direction);
+              break;
+            }
+          }
+
+          match fallback {
+            Some(direction) => direction,
+
+            None => {
+              println!(
+                "No legal fallback direction for \
+                 Switch {} {}.",
+                switch_no + 1,
+                Direction::from_index(
+                  incoming_direction
+                ).to_str()
+              );
+
+              return None;
+            }
+          }
+        };
+
+      result[slot] =
+        Direction::from_index(
+          outgoing_direction
+        );
+    }
+  }
+
+  Some(result)
+}
+
+/// Validate the static graph before searching.
+fn validate_input_graph(
+  switches: &[Switch],
+  bidirectional_graph: &[usize],
+) -> Result<(), String> {
+  let num_switches = switches.len();
+
+  if bidirectional_graph.len()
+    < 4 * num_switches
+  {
+    return Err(format!(
+      "graph length {} is smaller than \
+       4 * {} switches.",
+      bidirectional_graph.len(),
+      num_switches
+    ));
+  }
+
+  let num_stations =
+    bidirectional_graph.len()
+      - 4 * num_switches;
+
+  for (switch_no, switch) in
+    switches.iter().enumerate()
+  {
+    let degree =
+      switch.has_directions
+        .iter()
+        .filter(|&&exists| exists)
+        .count();
+
+    if degree != 3 && degree != 4 {
+      return Err(format!(
+        "Switch {} has degree {}, expected 3 or 4.",
+        switch_no + 1,
+        degree
+      ));
+    }
+
+    for direction in 0..4 {
+      if !switch.has_directions[direction] {
+        continue;
+      }
+
+      let port =
+        switch_node_id(
+          switch_no,
+          direction,
+          num_stations,
+        );
+
+      if port >= bidirectional_graph.len() {
+        return Err(format!(
+          "Switch {} {} has invalid graph index {}.",
+          switch_no + 1,
+          Direction::from_index(direction).to_str(),
+          port
+        ));
+      }
+
+      let next =
+        bidirectional_graph[port];
+
+      if next >= bidirectional_graph.len() {
+        return Err(format!(
+          "Switch {} {} points to invalid \
+           graph state {}.",
+          switch_no + 1,
+          Direction::from_index(direction).to_str(),
+          next
+        ));
+      }
+    }
+  }
+
+  // Stations must point to a switch port.
+  for station in 0..num_stations {
+    let next =
+      bidirectional_graph[station];
+
+    if next < num_stations {
+      return Err(format!(
+        "Station {} points to station {}.",
+        station,
+        next
+      ));
+    }
+
+    if next >= bidirectional_graph.len() {
+      return Err(format!(
+        "Station {} points to invalid state {}.",
+        station,
+        next
+      ));
+    }
+  }
+
+  Ok(())
+}
+
+
+/// Verify the BuildAll direction table.
+///
+/// The verifier looks for a valid BuildAll route starting from
+/// any legal state. It does NOT require every switch-port state
+/// to be visited; only every station and every switch must be
+/// visited.
+///
+/// This matches the invariants used by the generator.
+pub fn verify_buildall_directions(
+  switches: &[Switch],
+  stations: &[Station],
+  buildall_directions: &[Direction],
+  bidirectional_graph: &[usize],
+) -> Result<(), String> {
+  let num_stations = stations.len();
+  let num_switches = switches.len();
+
+  let expected_directions_len =
+    num_switches * 4;
+
+  let expected_graph_len =
+    num_stations + expected_directions_len;
+
+  if buildall_directions.len()
+    != expected_directions_len
+  {
+    return Err(format!(
+      "BuildAll direction vector has length {}, \
+       expected {}.",
+      buildall_directions.len(),
+      expected_directions_len
+    ));
+  }
+
+  if bidirectional_graph.len()
+    != expected_graph_len
+  {
+    return Err(format!(
+      "Bidirectional graph has length {}, \
+       expected {}.",
+      bidirectional_graph.len(),
+      expected_graph_len
+    ));
+  }
+
+  validate_input_graph(
+    switches,
+    bidirectional_graph,
+  )?;
+
+  let possible_starts =
+    build_possible_starts(
+      switches,
+      num_stations,
+    );
+
+  let mut last_error =
+    String::from(
+      "No starting state produced a valid BuildAll route."
+    );
+
+  for start in possible_starts {
+    match verify_route_from_start(
+      start,
+      switches,
+      buildall_directions,
+      bidirectional_graph,
+      num_stations,
+    ) {
+      Ok(route) => {
+        println!(
+          "BuildAll verification succeeded \
+           starting at {}.",
+          describe_state(
+            start,
+            num_stations,
+          )
+        );
+
+        print_route(
+          &route,
+          num_stations,
+        );
+
+        return Ok(());
+      }
+
+      Err(error) => {
+        last_error = format!(
+          "Starting at {}: {}",
+          describe_state(
+            start,
+            num_stations,
+          ),
+          error
+        );
+      }
+    }
+  }
+
+  Err(format!(
+    "BuildAll verification FAILED: {}",
+    last_error
+  ))
+}
+
+/// Verify one deterministic BuildAll route.
+fn verify_route_from_start(
+  start: usize,
+  switches: &[Switch],
+  buildall_directions: &[Direction],
+  bidirectional_graph: &[usize],
+  num_stations: usize,
+) -> Result<Vec<usize>, String> {
+  let num_switches = switches.len();
+  let total_states =
+    bidirectional_graph.len();
+
+  let mut visited_states =
+    vec![false; total_states];
+
+  let mut visited_stations =
+    vec![false; num_stations];
+
+  let mut visited_switches =
+    vec![false; num_switches];
+
+  // For every outgoing switch port, record the first route
+  // state which consumed it.
+  let mut used_outgoing_from:
+    Vec<Option<usize>> =
+      vec![None; total_states];
+
+  let mut route =
+    Vec::<usize>::new();
+
+  let mut current = start;
+
+  loop {
+    // ----------------------------------------------------------
+    // Repeated state.
+    // ----------------------------------------------------------
+
+    if visited_states[current] {
+      if current == start {
+        if all_vertices_visited(
+          &visited_stations,
+          &visited_switches,
+        ) {
+          return Ok(route);
+        }
+
+        return Err(format!(
+          "returned to the start before \
+           visiting every station and switch."
+        ));
+      }
+
+      print_route(
+        &route,
+        num_stations,
+      );
+
+      return Err(format!(
+        "entered already visited state {} \
+         before returning to the start.",
+        describe_state(
+          current,
+          num_stations,
+        )
+      ));
+    }
+
+    visited_states[current] = true;
+    route.push(current);
+
+    // ----------------------------------------------------------
+    // Station.
+    // ----------------------------------------------------------
+
+    if current < num_stations {
+      let station = current;
+
+      visited_stations[station] = true;
+
+      let next =
+        bidirectional_graph[current];
+
+      if next >= total_states {
+        return Err(format!(
+          "{} points to invalid state {}.",
+          describe_state(
+            current,
+            num_stations,
+          ),
+          next
+        ));
+      }
+
+      current = next;
+      continue;
+    }
+
+    // ----------------------------------------------------------
+    // Switch.
+    // ----------------------------------------------------------
+
+    let relative =
+      current - num_stations;
+
+    let switch_no =
+      relative / 4;
+
+    let incoming_direction_no =
+      relative % 4;
+
+    if switch_no >= num_switches {
+      return Err(format!(
+        "{} refers to invalid switch {}.",
+        describe_state(
+          current,
+          num_stations,
+        ),
+        switch_no + 1
+      ));
+    }
+
+    if !switches[switch_no]
+      .has_directions[incoming_direction_no]
+    {
+      return Err(format!(
+        "{} is a nonexistent switch port.",
+        describe_state(
+          current,
+          num_stations,
+        )
+      ));
+    }
+
+    visited_switches[switch_no] =
+      true;
+
+    let incoming_direction =
+      Direction::from_index(
+        incoming_direction_no
+      );
+
+    let slot =
+      switch_no * 4
+        + incoming_direction_no;
+
+    let outgoing_direction =
+      buildall_directions[slot];
+
+    // ----------------------------------------------------------
+    // Incoming and outgoing must differ.
+    // ----------------------------------------------------------
+
+    if outgoing_direction
+      == incoming_direction
+    {
+      return Err(format!(
+        "at {} the outgoing direction \
+         {:?} equals the incoming direction.",
+        describe_state(
+          current,
+          num_stations,
+        ),
+        outgoing_direction
+      ));
+    }
+
+    // ----------------------------------------------------------
+    // Outgoing direction must exist.
+    // ----------------------------------------------------------
+
+    let outgoing_direction_no =
+      outgoing_direction as usize;
+
+    if !switches[switch_no]
+      .has_directions[
+        outgoing_direction_no
+      ]
+    {
+      return Err(format!(
+        "at {} selected nonexistent \
+         outgoing direction {:?}.",
+        describe_state(
+          current,
+          num_stations,
+        ),
+        outgoing_direction
+      ));
+    }
+
+    let outgoing_port =
+      switch_node_id(
+        switch_no,
+        outgoing_direction_no,
+        num_stations,
+      );
+
+    if outgoing_port >= total_states {
+      return Err(format!(
+        "at {} outgoing port {} is invalid.",
+        describe_state(
+          current,
+          num_stations,
+        ),
+        outgoing_port
+      ));
+    }
+
+    // ----------------------------------------------------------
+    // An outgoing switch port may only be consumed once.
+    // ----------------------------------------------------------
+
+    if let Some(previous_source) =
+      used_outgoing_from[outgoing_port]
+    {
+      print_route(
+        &route,
+        num_stations,
+      );
+
+      return Err(format!(
+        "at {} outgoing port {} was already \
+         used when leaving {}.\n\
+         Current transition would be: {} -> {}.",
+        describe_state(
+          current,
+          num_stations,
+        ),
+        describe_state(
+          outgoing_port,
+          num_stations,
+        ),
+        describe_state(
+          previous_source,
+          num_stations,
+        ),
+        describe_state(
+          current,
+          num_stations,
+        ),
+        describe_state(
+          bidirectional_graph[
+            outgoing_port
+          ],
+          num_stations,
+        ),
+      ));
+    }
+
+    used_outgoing_from[outgoing_port] =
+      Some(current);
+
+    // ----------------------------------------------------------
+    // Follow the selected track.
+    // ----------------------------------------------------------
+
+    let next =
+      bidirectional_graph[outgoing_port];
+
+    if next >= total_states {
+      return Err(format!(
+        "{} -> {} points to invalid \
+         graph state {}.",
+        describe_state(
+          current,
+          num_stations,
+        ),
+        describe_state(
+          outgoing_port,
+          num_stations,
+        ),
+        next
+      ));
+    }
+
+    current = next;
+  }
+}
+
+fn describe_state(
+  state: usize,
+  num_stations: usize,
+) -> String {
+  if state < num_stations {
+    return format!(
+      "Station {}",
+      state + 1
+    );
+  }
+
+  let relative =
+    state - num_stations;
+
+  let switch_no =
+    relative / 4;
+
+  let direction_no =
+    relative % 4;
+
+  format!(
+    "Switch {} {}",
+    switch_no + 1,
+    Direction::from_index(
+      direction_no
+    ).to_str()
+  )
+}
+
+/// Print a route for diagnostics.
+fn print_route(
+  route: &[usize],
+  num_stations: usize,
+) {
+  println!();
+  println!(
+    "BuildAll route ({} states):",
+    route.len()
+  );
+  println!(
+    "----------------------------------------"
+  );
+
+  for (step, &state) in
+    route.iter().enumerate()
+  {
+    println!(
+      "{:4}: {}",
+      step,
+      describe_state(
+        state,
+        num_stations,
+      )
+    );
+  }
+
+  println!(
+    "----------------------------------------"
+  );
+  println!();
 }
