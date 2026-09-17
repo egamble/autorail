@@ -80,7 +80,7 @@ fn main() {
 
   println!("\nReading from regions:");
   let (blocks, chunks) = find_blocks(starting_chunk_coords, &world_dir, &ties_map);
-  
+
   let mut rail_map: HashMap<BlockCoords, Block> = HashMap::new();
   let mut sign_map: HashMap<BlockCoords, Block> = HashMap::new();
 
@@ -120,7 +120,7 @@ fn main() {
   
   println!("Finding BuildAll directions");
   let buildall_directions =
-    match find_buildall_directions(&switches, &bidirectional_graph) {
+    match find_buildall_directions(&switches, &stations, &bidirectional_graph) {
       Some(directions) => directions,
       None => {
         println!(
@@ -138,7 +138,7 @@ fn main() {
     &bidirectional_graph,
   ) {
     Err(err) => println!("{}", err),
-    Ok(()) => println!("Verified")
+    Ok(()) => println!("BuildAll directions verified")
     };
 
   

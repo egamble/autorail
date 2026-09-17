@@ -22,7 +22,7 @@ fn push_station(stations: &mut Vec<Station>, rail_block: &Block, name_sign: &Blo
 
 pub fn find_stations(blocks: &Vec<Block>, rail_map: &HashMap<BlockCoords, Block>, sign_map: &HashMap<BlockCoords, Block>) -> Vec<Station> {
   let mut stations: Vec<Station> = Vec::new();
-  
+
   for block in blocks {
     if !block.is_rail() {
       continue;

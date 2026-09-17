@@ -31,20 +31,13 @@ use crate::common::switch_node_id;
 /// filled with arbitrary legal directions. They do not affect the
 /// BuildAll route because the route never enters those states.
 pub fn find_buildall_directions(
-  switches: &Vec<Switch>,
-  bidirectional_graph: &Vec<usize>,
+  switches: &[Switch],
+  stations: &[Station],
+  bidirectional_graph: &[usize],
 ) -> Option<Vec<Direction>> {
   let num_switches = switches.len();
 
-  if bidirectional_graph.len() < 4 * num_switches {
-    println!(
-      "Cannot find BuildAll directions: graph is too short."
-    );
-    return None;
-  }
-
-  let num_stations =
-    bidirectional_graph.len() - 4 * num_switches;
+  let num_stations = stations.len();
 
   let graph_len = bidirectional_graph.len();
 
@@ -775,9 +768,9 @@ pub fn verify_buildall_directions(
     match verify_route_from_start(
       start,
       switches,
+      stations,
       buildall_directions,
       bidirectional_graph,
-      num_stations,
     ) {
       Ok(route) => {
         println!(
@@ -786,12 +779,13 @@ pub fn verify_buildall_directions(
           describe_state(
             start,
             num_stations,
+            stations,
           )
         );
 
         print_route(
           &route,
-          num_stations,
+          stations,
         );
 
         return Ok(());
@@ -803,6 +797,7 @@ pub fn verify_buildall_directions(
           describe_state(
             start,
             num_stations,
+            stations,
           ),
           error
         );
@@ -820,11 +815,13 @@ pub fn verify_buildall_directions(
 fn verify_route_from_start(
   start: usize,
   switches: &[Switch],
+  stations: &[Station],
   buildall_directions: &[Direction],
   bidirectional_graph: &[usize],
-  num_stations: usize,
 ) -> Result<Vec<usize>, String> {
   let num_switches = switches.len();
+  let num_stations = stations.len();
+
   let total_states =
     bidirectional_graph.len();
 
@@ -870,7 +867,7 @@ fn verify_route_from_start(
 
       print_route(
         &route,
-        num_stations,
+        stations,
       );
 
       return Err(format!(
@@ -879,6 +876,7 @@ fn verify_route_from_start(
         describe_state(
           current,
           num_stations,
+          stations,
         )
       ));
     }
@@ -904,6 +902,7 @@ fn verify_route_from_start(
           describe_state(
             current,
             num_stations,
+            stations,
           ),
           next
         ));
@@ -932,8 +931,9 @@ fn verify_route_from_start(
         describe_state(
           current,
           num_stations,
+          stations,
         ),
-        switch_no + 1
+        switch_no
       ));
     }
 
@@ -945,6 +945,7 @@ fn verify_route_from_start(
         describe_state(
           current,
           num_stations,
+          stations,
         )
       ));
     }
@@ -977,6 +978,7 @@ fn verify_route_from_start(
         describe_state(
           current,
           num_stations,
+          stations,
         ),
         outgoing_direction
       ));
@@ -1000,6 +1002,7 @@ fn verify_route_from_start(
         describe_state(
           current,
           num_stations,
+          stations,
         ),
         outgoing_direction
       ));
@@ -1018,6 +1021,7 @@ fn verify_route_from_start(
         describe_state(
           current,
           num_stations,
+          stations,
         ),
         outgoing_port
       ));
@@ -1032,7 +1036,7 @@ fn verify_route_from_start(
     {
       print_route(
         &route,
-        num_stations,
+        stations,
       );
 
       return Err(format!(
@@ -1042,24 +1046,29 @@ fn verify_route_from_start(
         describe_state(
           current,
           num_stations,
+          stations,
         ),
         describe_state(
           outgoing_port,
           num_stations,
+          stations,
         ),
         describe_state(
           previous_source,
           num_stations,
+          stations,
         ),
         describe_state(
           current,
           num_stations,
+          stations,
         ),
         describe_state(
           bidirectional_graph[
             outgoing_port
           ],
           num_stations,
+          stations,
         ),
       ));
     }
@@ -1081,10 +1090,12 @@ fn verify_route_from_start(
         describe_state(
           current,
           num_stations,
+          stations,
         ),
         describe_state(
           outgoing_port,
           num_stations,
+          stations,
         ),
         next
       ));
@@ -1097,11 +1108,13 @@ fn verify_route_from_start(
 fn describe_state(
   state: usize,
   num_stations: usize,
+  stations: &[Station],
 ) -> String {
   if state < num_stations {
     return format!(
-      "Station {}",
-      state
+      "Station {} ({})",
+      state,
+      stations[state].name,
     );
   }
 
@@ -1126,8 +1139,10 @@ fn describe_state(
 /// Print a route for diagnostics.
 fn print_route(
   route: &[usize],
-  num_stations: usize,
+  stations: &[Station],
 ) {
+  let num_stations = stations.len();
+
   println!();
   println!(
     "BuildAll route ({} states):",
@@ -1146,6 +1161,7 @@ fn print_route(
       describe_state(
         state,
         num_stations,
+        stations,
       )
     );
   }
