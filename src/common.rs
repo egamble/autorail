@@ -252,8 +252,8 @@ impl Block {
 }
 
 
-pub fn block_name_to_id(name: &str) -> Option<BlockID> {
-  let id = match name {
+pub fn block_id_str_to_enum(block_id_str: &str) -> Option<BlockID> {
+  let block_id = match block_id_str {
     "minecraft:rail"               => BlockID::UnpoweredRail,
     "minecraft:powered_rail"       => BlockID::PoweredRail,
     "minecraft:detector_rail"      => BlockID::DetectorRail,
@@ -272,7 +272,7 @@ pub fn block_name_to_id(name: &str) -> Option<BlockID> {
     },
   };
 
-  Some(id)
+  Some(block_id)
 }
 
 

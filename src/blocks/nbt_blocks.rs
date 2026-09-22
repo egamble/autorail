@@ -12,7 +12,7 @@ use crate::common::{
   EMPTY
 };
 use crate::common::{
-  block_name_to_id,
+  block_id_str_to_enum,
   facing_to_sign_data,
   shape_to_rail_data,
   read_i32
@@ -88,7 +88,6 @@ pub fn find_chunk_nbt_blocks(chunk_coords: ChunkCoords, chunk_nbt: Vec<u8>) -> V
       }
     }
   }
-
   blocks
 }
 
@@ -135,56 +134,71 @@ fn make_palette_map(palette: &Vec<Nbt>) -> HashMap<usize, Block> {
 
   for palette_index in 0..palette.len() {
     let palette_tag = &palette[palette_index];
-    if let Nbt::NbtCompound(palette) = palette_tag {
-    
-      if let Some(name_tag) = palette.get("Name") {
-        if let Nbt::NbtData(name_data) = name_tag {
-          let name: &str = str::from_utf8(name_data).unwrap();
 
-          if let Some(block_id) = block_name_to_id(name) {
-            if let Some(properties_tag) = palette.get("Properties") {
+    if let Nbt::NbtCompound(palette_block) = palette_tag {
+      // Minecraft has used both "id" and "Name" here.
+      // A bare/default block state can also use an empty tag name.
+      let id_tag = palette_block
+        .get("id")
+        .or_else(|| palette_block.get("Name"))
+        .or_else(|| palette_block.get(""));
+
+      if let Some(id_tag) = id_tag {
+        if let Nbt::NbtData(id_data) = id_tag {
+          let block_id_str: &str = str::from_utf8(id_data).unwrap();
+
+          if let Some(block_id) = block_id_str_to_enum(block_id_str) {
+            let mut rail_data: RailData = RailData::NS;
+            let mut sign_data: SignData = SignData::N;
+
+            // Minecraft has used both "properties" and "Properties".
+            let properties_tag = palette_block
+              .get("properties")
+              .or_else(|| palette_block.get("Properties"));
+
+            if let Some(properties_tag) = properties_tag {
               if let Nbt::NbtCompound(properties) = properties_tag {
-
-                let mut rail_data: RailData = RailData::NS;
-                let mut sign_data: SignData = SignData::N;
-
                 if (&block_id).is_rail_id() {
                   if let Some(shape_tag) = properties.get("shape") {
                     if let Nbt::NbtData(shape_data) = shape_tag {
                       let shape: &str = str::from_utf8(shape_data).unwrap();
+
                       if let Some(bd) = shape_to_rail_data(shape) {
                         rail_data = bd;
                       }
                     }
                   }
                 }
+
                 if (&block_id).is_sign_id() {
                   if let Some(facing_tag) = properties.get("facing") {
                     if let Nbt::NbtData(facing_data) = facing_tag {
                       let facing: &str = str::from_utf8(facing_data).unwrap();
+
                       if let Some(bd) = facing_to_sign_data(facing) {
                         sign_data = bd;
                       }
                     }
                   }
                 }
-
-                let template_block = Block {
-                  id: block_id,
-                  coords: (0, 0, 0, Realm::Overworld),
-                  rail_data: rail_data,
-                  sign_data: sign_data,
-                  sign_text: EMPTY,
-                };
-                palette_map.insert(palette_index, template_block);
               }
             }
+
+            let template_block = Block {
+              id: block_id,
+              coords: (0, 0, 0, Realm::Overworld),
+              rail_data: rail_data,
+              sign_data: sign_data,
+              sign_text: EMPTY,
+            };
+
+            palette_map.insert(palette_index, template_block);
           }
         }
       }
     }
   }
-  
+
   palette_map
 }
 

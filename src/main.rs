@@ -102,11 +102,16 @@ fn main() {
     exit!("No stations found");
   }
 
-  println!("Finding station signs");
-  let station_signs = find_station_signs(&blocks, &stations);
+  println!("Number of stations: {}", stations.len());
 
   println!("Finding switches");
   let switches = find_switches(&blocks, &rail_map);
+
+  if switches.len() == 0 {
+    exit!("No switches found");
+  }
+
+  println!("Number of switches: {}", switches.len());
 
   println!("Finding connections and shortest routes");
   let (distances, rail_system_coords, bidirectional_graph) =
@@ -117,6 +122,9 @@ fn main() {
       &ties_map,
       &weights_map
     );
+
+  println!("Finding station signs");
+  let station_signs = find_station_signs(&blocks, &stations);
   
   println!("Finding BuildAll directions");
   let buildall_directions =
