@@ -1,4 +1,4 @@
-use crate::common::{Direction, Station, StationSign, Switch};
+use crate::common::{Station, StationSign, Switch};
 
 use crate::rail_functions::station_functions::{write_station_functions};
 use crate::rail_functions::sign_functions::{write_sign_functions};
@@ -10,15 +10,19 @@ pub fn write_system_functions(
   station_signs: &Vec<StationSign>,
   switches: &Vec<Switch>,
   distances: &Vec<i32>,
-  buildall_directions: &Vec<Direction>,
+  build_all_route: &Vec<usize>,
   out_path: &String
 ) {
-  write_station_functions(stations, out_path);
+  write_station_functions(
+    stations,
+    build_all_route,
+    out_path);
 
   write_sign_functions(
     station_signs,
     stations,
     distances,
+    build_all_route,
     out_path
   );
 
@@ -26,7 +30,6 @@ pub fn write_system_functions(
     switches,
     stations.len(),
     distances,
-    buildall_directions,
     out_path
   );
 }

@@ -69,44 +69,44 @@ const STATION_DESTROY: &str =
   r#"kill @e[type=minecart,name=!"NoKill"]"#;
 
 const STATION_INCOMING_N: &str =
-  r#"kill @e[type=minecart,name=!"NoKill",name=!"BuildAll",distance=..2]
+  r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
 
-execute if entity @e[type=minecart,name="BuildAll",distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[0.0,0.0,-1.0]}
+$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[0.0,0.0,-1.0],CustomName:"S$(next_station_id)"}
 
-execute if entity @e[type=minecart,name="BuildAll",distance=..2] run ***/build"#;
+execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/build"#;
 
 const STATION_INCOMING_S: &str =
-  r#"kill @e[type=minecart,name=!"NoKill",name=!"BuildAll",distance=..2]
+  r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
 
-execute if entity @e[type=minecart,name="BuildAll",distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[0.0,0.0,1.0]}
+$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[0.0,0.0,1.0],CustomName:"S$(next_station_id)"}
 
-execute if entity @e[type=minecart,name="BuildAll",distance=..2] run ***/build"#;
+execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/build"#;
 
 const STATION_INCOMING_W: &str =
-  r#"kill @e[type=minecart,name=!"NoKill",name=!"BuildAll",distance=..2]
+  r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
 
-execute if entity @e[type=minecart,name="BuildAll",distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[-1.0,0.0,0.0]}
+$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[-1.0,0.0,0.0],CustomName:"S$(next_station_id)"}
 
-execute if entity @e[type=minecart,name="BuildAll",distance=..2] run ***/build"#;
+execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/build"#;
 
 const STATION_INCOMING_E: &str =
-  r#"kill @e[type=minecart,name=!"NoKill",name=!"BuildAll",distance=..2]
+  r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
 
-execute if entity @e[type=minecart,name="BuildAll",distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[1.0,0.0,0.0]}
+$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[1.0,0.0,0.0],CustomName:"S$(next_station_id)"}
 
-execute if entity @e[type=minecart,name="BuildAll",distance=..2] run ***/build"#;
+execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/build"#;
 
 const STATION_OUTGOING_N: &str =
-  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming/n"}"#;
+  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming/n {next_station_id:$(next_station_id)}"}"#;
 
 const STATION_OUTGOING_S: &str =
-  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming/s"}"#;
+  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming/s {next_station_id:$(next_station_id)}"}"#;
 
 const STATION_OUTGOING_W: &str =
-  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming/w"}"#;
+  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming/w {next_station_id:$(next_station_id)}"}"#;
 
 const STATION_OUTGOING_E: &str =
-  r#"data merge block ~ ~ ~ {Command:"***/x/station/incoming/e"}"#;
+  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming/e {next_station_id:$(next_station_id)}"}"#;
 
 const STATION_QUICK_SELECT: &str =
   r#"$execute positioned $(x) $(y) $(z) run clone ~ ~ ~ ~ ~ ~ ~ ~1 ~
@@ -114,22 +114,22 @@ const STATION_QUICK_SELECT: &str =
 $execute positioned $(x) $(y) $(z) run ***/select/$(direction)/$(select_fn)"#;
 
 const STATION_LAUNCH_N: &str =
-  r#"data merge block ~ ~-3 ~-1 {Command:"***/x/station/outgoing/n"}
+  r#"$data merge block ~ ~-3 ~-1 {Command:"***/x/station/outgoing/n {next_station_id:$(next_station_id)}"}
 
 data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[0.0,0.0,-1.0]}"#;
 
 const STATION_LAUNCH_S: &str =
-  r#"data merge block ~ ~-3 ~1 {Command:"***/x/station/outgoing/s"}
+  r#"$data merge block ~ ~-3 ~1 {Command:"***/x/station/outgoing/s {next_station_id:$(next_station_id)}"}
 
 data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[0.0,0.0,1.0]}"#;
 
 const STATION_LAUNCH_W: &str =
-  r#"data merge block ~-1 ~-3 ~ {Command:"***/x/station/outgoing/w"}
+  r#"$data merge block ~-1 ~-3 ~ {Command:"***/x/station/outgoing/w {next_station_id:$(next_station_id)}"}
 
 data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[-1.0,0.0,0.0]}"#;
 
 const STATION_LAUNCH_E: &str =
-  r#"data merge block ~1 ~-3 ~ {Command:"***/x/station/outgoing/e"}
+  r#"$data merge block ~1 ~-3 ~ {Command:"***/x/station/outgoing/e {next_station_id:$(next_station_id)}"}
 
 data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[1.0,0.0,0.0]}"#;
 
@@ -166,7 +166,7 @@ data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select St
 $summon minecart ~ ~-0.5 ~1 {CustomName:"S$(station_id)"}"#;
 
 const STATION_SUMMON_BUILD_ALL: &str =
-  r#"$summon minecart $(x) $(y) $(z) {CustomName:"BuildAll"}"#;
+  r#"$summon minecart $(x) $(y) $(z) {CustomName:"S$(next_station_id)",Glowing:1b}"#;
 
 const STATION_TELEPORT_N: &str =
   r#"setblock ~ ~ ~ air

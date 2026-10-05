@@ -56,7 +56,6 @@ fn switch_body(
   num_stations: usize,
   distances: &Vec<i32>,
   num_nodes: usize,
-  buildall_directions: &Vec<Direction>
 ) -> String {
   let mut shortest_directions: Vec<Direction> = Vec::new();
   let mut num_shortest_directions: Vec<i32> = vec![0; 4];
@@ -147,24 +146,7 @@ fn switch_body(
     }
   }
 
-  let buildall_switch_rail_data = get_switch_rail_data(
-    switch,
-    from_direction,
-    buildall_directions[switch_node_id(switch_id, from_direction as usize, 0)]
-  );
-
-  let mut buildall_body_line = r#"
-execute if entity @e[type=minecart,name="BuildAll",distance=..2.5] run ***/x/switch/*2*
-"#.to_string();
-
-  buildall_body_line = buildall_body_line.replace("*2*",
-                                                  format!("set_{}_{}",
-                                                          from_direction.to_str(),
-                                                          buildall_switch_rail_data.to_str()
-                                                  ).as_str());
-
-  body.push_str(buildall_body_line.as_str());
-  body.push_str(r#"execute if entity @e[type=minecart,name="BuildAll",distance=..2.5] run ***/build"#);
+  body.push_str(r#"execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2.5] run ***/build"#);
   
   body
 }
@@ -218,7 +200,6 @@ pub fn write_switch_functions(
   switches: &Vec<Switch>,
   num_stations: usize,
   distances: &Vec<i32>,
-  buildall_directions: &Vec<Direction>,
   out_path: &String
 ) {
   let num_nodes = get_num_nodes(distances);
@@ -251,7 +232,6 @@ pub fn write_switch_functions(
                         num_stations,
                         distances,
                         num_nodes,
-                        buildall_directions
             )
           )
         );

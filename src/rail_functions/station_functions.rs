@@ -13,7 +13,7 @@ use crate::rail_functions::station_name::{break_up_station_name};
 fn build_station_body(
   station: &Station,
   station_id: usize,
-  num_stations: usize
+  build_all_route: &Vec<usize>,
 ) -> String {
   let mut body = r#"execute positioned *1* run ***/x/station/build/*2* {next_station_id:*6*}
 
@@ -23,10 +23,7 @@ data merge block *3* {front_text: {has_glowing_text: 1b, messages: [{"text":"*4*
 
   let (row_1, row_2, row_3) = break_up_station_name(station);
 
-  let mut next_station_id: usize = station_id + 1;
-  if next_station_id == num_stations {
-    next_station_id = 0;
-  }
+  let next_station_id = build_all_route[station_id];
 
   body = body.replace("*1*", format!("{} {} {}", x, y, z).as_str());
   body = body.replace("*2*", station.direction.to_str());
@@ -49,9 +46,11 @@ fn add_build_stations_body(realm: Realm, station_id: usize) -> String {
 }
 
 
-pub fn write_station_functions(stations: &Vec<Station>, out_path: &String) {
-  let num_stations = stations.len();
-
+pub fn write_station_functions(
+  stations: &Vec<Station>,
+  build_all_route: &Vec<usize>,
+  out_path: &String
+) {
   let mut build_stations_body: String = EMPTY;
 
   for (station_id, station) in stations.iter().enumerate() {
@@ -71,7 +70,7 @@ pub fn write_station_functions(stations: &Vec<Station>, out_path: &String) {
         build_station_body(
           station,
           station_id,
-          num_stations
+          build_all_route,
         )
       )
     );

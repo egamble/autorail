@@ -17,8 +17,6 @@ use crate::common::{
   get_distance,
   realm_to_out_string,
   find_nearest_station_id,
-  switch_node_id,
-  block_coords_to_file_name
 };
 
 
@@ -44,7 +42,7 @@ fn write_station_signs(stations: &Vec<Station>, station_signs: &Vec<StationSign>
 
   for station_sign in station_signs {
     if station_sign.nearest_num == 0 {
-      // skip "Summon BuildAll Cart" signs
+      // skip "Summon Build All Cart" signs
       continue;
     }
 
@@ -85,35 +83,29 @@ fn write_switches(switches: &Vec<Switch>, out_path: &String) {
   }
 }
 
-fn write_buildall_directions(
-  buildall_directions: &Vec<Direction>,
-  switches: &Vec<Switch>,
+
+fn write_build_all_route(
+  stations: &Vec<Station>,
+  build_all_route: &Vec<usize>,
   out_path: &String
 ) {
   let mut writer = create_writer(out_path);
 
-  for switch_id in 0..switches.len() {
-    let switch = &switches[switch_id];
+  for from_station_id in 0..stations.len() {
+    let from_station = &stations[from_station_id];
+
+    let to_station_id = build_all_route[from_station_id];
+    let to_station = &stations[to_station_id];
     
-    writeln_out(&mut writer, out_path, format!("SW{}\t{}",
-                                               switch_id,
-                                               block_coords_to_file_name(switch.coords)));
-
-    for from_direction_index in 0..4 { // NSWE
-      if switch.has_directions[from_direction_index] {
-        let from_direction = Direction::from_index(from_direction_index);
-        let to_direction = buildall_directions[switch_node_id(switch_id, from_direction_index, 0)];
-
-        let out_string = format!("\t{}->{}",
-                                 from_direction.to_str(),
-                                 to_direction.to_str()
-        );
-        writeln_out(&mut writer, out_path, out_string);
-      }
-    }
+    writeln_out(&mut writer, out_path, format!("S{}\tS{}\t{}\t{}",
+                                               from_station_id,
+                                               to_station_id,
+                                               from_station.name,
+                                               to_station.name));
   }
 }
 
+  
 fn write_switches_nearest_station(
   switches: &Vec<Switch>,
   stations: &Vec<Station>,
@@ -466,7 +458,7 @@ pub fn write_diagnostics(
   rail_system_coords: &Vec<BlockCoords>,
   rail_map: &HashMap<BlockCoords, Block>,
   chunks: &Vec<(ChunkCoords, usize)>,
-  buildall_directions: &Vec<Direction>,
+  build_all_route: &Vec<usize>,
   bidirectional_graph: &Vec<usize>,
   diagnostics_out_path: &String
 ) {
@@ -483,10 +475,10 @@ pub fn write_diagnostics(
     &switches,
     &format!("{diagnostics_out_path}/switches.tsv"));
 
-  write_buildall_directions(
-    &buildall_directions,
-    &switches,
-    &format!("{diagnostics_out_path}/buildall-directions.tsv"));
+  write_build_all_route(
+    &stations,
+    &build_all_route,
+    &format!("{diagnostics_out_path}/build-all-route.tsv"));
   
   write_switches_nearest_station(
     &switches,
@@ -509,5 +501,5 @@ pub fn write_diagnostics(
   write_bidirectional_graph(
     &switches,
     &bidirectional_graph,
-    &format!("{diagnostics_out_path}/bidirectional_graph.tsv"));
+    &format!("{diagnostics_out_path}/bidirectional-graph.tsv"));
 }

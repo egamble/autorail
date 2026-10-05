@@ -13,14 +13,23 @@ use crate::common::{
 use crate::rail_functions::station_name::{break_up_station_name};
 
 
-fn station_sign_body(station_sign: &StationSign, stations: &Vec<Station>) -> String {
-  let belongs_to_station = &stations[station_sign.belongs_to_station_id];
+fn station_sign_body(
+  station_sign: &StationSign,
+  stations: &Vec<Station>,
+  build_all_route: &Vec<usize>,
+) -> String {
+  let belongs_to_station_id = station_sign.belongs_to_station_id;
+  let belongs_to_station = &stations[belongs_to_station_id];
   let (x, y, z, _) = belongs_to_station.coords;
 
   if station_sign.nearest_num == 0 {
     let mut body = r#"***/x/station/summon_build_all {*1*}"#.to_string();
 
-    body = body.replace("*1*", format!("x:{},y:{},z:{}", x, (y as f64) + 0.5, z).as_str());
+    body = body.replace("*1*", format!("x:{},y:{},z:{},next_station_id:{}",
+                                       x,
+                                       (y as f64) + 0.5,
+                                       z,
+                                       build_all_route[belongs_to_station_id]).as_str());
 
     return body;
   }
@@ -57,7 +66,7 @@ fn build_station_sign_body(
   station_sign: &StationSign,
   stations: &Vec<Station>,
   distances: &Vec<i32>,
-  num_nodes: usize
+  num_nodes: usize,
 ) -> String {
   let mut body = r#"data merge block *1* {front_text: {messages: [{"text":"*2*","color":"dark_blue"},{"text":"*3*","color":"dark_blue","click_event":{"action":"run_command","command":"***/signs/*4*"}},{"text":"*5*","color":"dark_blue"},{"text":"*6*","color":"dark_blue"}]}}"#.to_string();
   
@@ -66,11 +75,12 @@ fn build_station_sign_body(
 
   let mut row_1 = EMPTY;
   let row_2;
-  let mut row_3 = EMPTY;
+  let row_3;
   let mut row_4 = EMPTY;
 
   if station_sign.nearest_num == 0 {
-    row_2 = "Summon BuildAll".to_string();
+    row_2 = "Summon Build All".to_string();
+    row_3 = "Cart".to_string();
     row_4 = "N0".to_string();
   } else {
     let refers_to_station = &stations[station_sign.refers_to_station_id];
@@ -124,6 +134,7 @@ pub fn write_sign_functions(
   station_signs: &Vec<StationSign>,
   stations: &Vec<Station>,
   distances: &Vec<i32>,
+  build_all_route: &Vec<usize>,
   out_path: &String
 ) {
   let num_nodes = get_num_nodes(distances);
@@ -144,7 +155,7 @@ pub fn write_sign_functions(
                block_coords_to_file_name(sign_coords),
       ),
       complete_function(
-        station_sign_body(station_sign, stations)
+        station_sign_body(station_sign, stations, build_all_route)
       )
     );
 
@@ -158,7 +169,7 @@ pub fn write_sign_functions(
           station_sign,
           stations,
           distances,
-          num_nodes
+          num_nodes,
         )
       )
     );
