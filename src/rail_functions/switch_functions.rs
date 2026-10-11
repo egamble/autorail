@@ -1,4 +1,4 @@
-use crate::common::{Direction, RailData, Switch};
+use crate::common::{Direction, Switch};
 use crate::common::{
   block_coords_to_file_name,
   complete_function,
@@ -7,46 +7,9 @@ use crate::common::{
   get_num_nodes,
   get_distance,
   switch_node_id,
+  get_switch_rail_data,
   EMPTY,
 };
-
-
-fn get_switch_rail_data(
-  switch: &Switch,
-  from_direction: Direction,
-  to_direction: Direction
-) -> RailData {
-  match from_direction {
-    Direction::N => {
-      match to_direction {
-        Direction::W => RailData::NW,
-        Direction::E => RailData::NE,
-        _ => if switch.has_directions[Direction::W as usize] {RailData::SW} else {RailData::SE}
-      }
-    },
-    Direction::S => {
-      match to_direction {
-        Direction::W => RailData::SW,
-        Direction::E => RailData::SE,
-        _ => if switch.has_directions[Direction::W as usize] {RailData::NW} else {RailData::NE}
-      }
-    },
-    Direction::W => {
-      match to_direction {
-        Direction::N => RailData::NW,
-        Direction::S => RailData::SW,
-        _ => if switch.has_directions[Direction::N as usize] {RailData::NE} else {RailData::SE}
-      }
-    },
-    Direction::E => {
-      match to_direction {
-        Direction::N => RailData::NE,
-        Direction::S => RailData::SE,
-        _ => if switch.has_directions[Direction::N as usize] {RailData::NW} else {RailData::SW}
-      }
-    },
-  }
-}
 
 
 fn switch_body(
@@ -57,6 +20,10 @@ fn switch_body(
   distances: &Vec<i32>,
   num_nodes: usize,
 ) -> String {
+  let mut body = r#"execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2.5] run ***/build
+
+"#.to_string();
+
   let mut shortest_directions: Vec<Direction> = Vec::new();
   let mut num_shortest_directions: Vec<i32> = vec![0; 4];
 
@@ -114,13 +81,12 @@ fn switch_body(
     max_to_direction
   );
   
-  let mut body = format!("***/x/switch/set_{}_{}
+  body.push_str(format!("***/x/switch/set_{}_{}
 
 ",
                          from_direction.to_str(),
                          max_switch_rail_data.to_str()
-  );
-
+  ).as_str());
 
   for (station_id, to_direction) in shortest_directions.iter().enumerate() {
     if *to_direction != from_direction && *to_direction != max_to_direction {
@@ -145,8 +111,6 @@ fn switch_body(
       body.push_str(body_line.as_str());
     }
   }
-
-  body.push_str(r#"execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2.5] run ***/build"#);
   
   body
 }

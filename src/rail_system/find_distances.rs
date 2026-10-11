@@ -380,7 +380,7 @@ fn find_next_rail_block(
         }
       }
     } else {
-      panic!("Unexpected rail data {:?} and direction {:?} at {:?}", current_rail_data, direction, coords);
+      exit!("Unexpected rail data {:?} and direction {:?} at {:?}", current_rail_data, direction, coords);
     }
   }
 

@@ -164,7 +164,6 @@ pub fn find_build_all_route(
   }
 
   let mut best_route = Vec::new();
-  let mut best_cost = i64::MAX;
 
   let mut shortest_cost = i64::MAX;
   let mut longest_cost = i64::MIN;
@@ -188,15 +187,11 @@ pub fn find_build_all_route(
 
     if cost < shortest_cost {
       shortest_cost = cost;
+      best_route = route;
     }
 
     if cost > longest_cost {
       longest_cost = cost;
-    }
-
-    if cost < best_cost {
-      best_cost = cost;
-      best_route = route;
     }
   }
 

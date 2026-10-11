@@ -141,6 +141,7 @@ fn main() {
     &station_signs,
     &switches,
     &distances,
+    &bidirectional_graph,
     &build_all_route,
     &functions_out_path
   );

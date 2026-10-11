@@ -10,11 +10,15 @@ pub fn write_system_functions(
   station_signs: &Vec<StationSign>,
   switches: &Vec<Switch>,
   distances: &Vec<i32>,
+  bidirectional_graph: &Vec<usize>,
   build_all_route: &Vec<usize>,
   out_path: &String
 ) {
   write_station_functions(
     stations,
+    switches,
+    distances,
+    bidirectional_graph,
     build_all_route,
     out_path);
 

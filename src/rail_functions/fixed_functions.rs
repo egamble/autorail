@@ -9,104 +9,89 @@ const BUILD: &str =
 ***/stations/_build
 ***/switches/_build";
 
+// N Motion:[0.0,0.0,-1.0]
+// S Motion:[0.0,0.0,1.0]
+// W Motion:[-1.0,0.0,0.0]
+// E Motion:[1.0,0.0,0.0]
+
 const STATION_BUILD_N: &str =
   r#"data merge block ~-1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:n}"}},{"text":""},{"text":""}]}}
 
 data merge block ~1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/n {next_station_id:$(next_station_id)}"}},{"text":""},{"text":""}]}}
+$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/n {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,-1.0]}"}},{"text":""},{"text":""}]}}
 
 setblock ~1 ~2 ~ air
 setblock ~-1 ~2 ~ air
 setblock ~ ~-2 ~-1 air
 
-$setblock ~ ~-2 ~-1 command_block[facing=down]{Command:"***/x/station/incoming/n {next_station_id:$(next_station_id)}"}"#;
+$setblock ~ ~-2 ~-1 command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,-1.0]}"}"#;
 
 const STATION_BUILD_S: &str =
   r#"data merge block ~1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"}},{"text":""},{"text":""}]}}
 
 data merge block ~-1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/s {next_station_id:$(next_station_id)}"}},{"text":""},{"text":""}]}}
+$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/s {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,1.0]}"}},{"text":""},{"text":""}]}}
 
 setblock ~-1 ~2 ~ air
 setblock ~1 ~2 ~ air
 setblock ~ ~-2 ~1 air
 
-$setblock ~ ~-2 ~1 command_block[facing=down]{Command:"***/x/station/incoming/s {next_station_id:$(next_station_id)}"}"#;
+$setblock ~ ~-2 ~1 command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,1.0]}"}"#;
 
 const STATION_BUILD_W: &str =
   r#"data merge block ~ ~1 ~1 {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"}},{"text":""},{"text":""}]}}
 
 data merge block ~ ~1 ~-1 {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/w {next_station_id:$(next_station_id)}"}},{"text":""},{"text":""}]}}
+$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/w {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[-1.0,0.0,0.0]}"}},{"text":""},{"text":""}]}}
 
 setblock ~ ~2 ~-1 air
 setblock ~ ~2 ~1 air
 setblock ~-1 ~-2 ~ air
 
-$setblock ~-1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming/w {next_station_id:$(next_station_id)}"}"#;
+$setblock ~-1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:\"$(first_switch_coords)\",first_switch_shape:$(first_switch_shape),motion:[-1.0,0.0,0.0]}"}"#;
 
 const STATION_BUILD_E: &str =
   r#"data merge block ~ ~1 ~-1 {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"}},{"text":""},{"text":""}]}}
 
 data merge block ~ ~1 ~1 {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/e {next_station_id:$(next_station_id)}"}},{"text":""},{"text":""}]}}
+$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/e {next_station_id:$(next_station_id),first_switch_coords:\"$(first_switch_coords)\",first_switch_shape:$(first_switch_shape),motion:[1.0,0.0,0.0]}"}},{"text":""},{"text":""}]}}
 
 setblock ~ ~2 ~1 air
 setblock ~ ~2 ~-1 air
 setblock ~1 ~-2 ~ air
 
-$setblock ~1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming/e {next_station_id:$(next_station_id)}"}"#;
+$setblock ~1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:\"$(first_switch_coords)\",first_switch_shape:$(first_switch_shape),motion:[1.0,0.0,0.0]}"}"#;
 
 const STATION_NAME_SIGN: &str =
    "***/build
-$***/x/teleport/s$(next_station_id) {elevation:-20}";
+$***/x/teleport/s$(next_alphabetical_station_id) {elevation:-20}";
 
 const STATION_DESTROY: &str =
   r#"kill @e[type=minecart,name=!"NoKill"]"#;
 
-const STATION_INCOMING_N: &str =
+const STATION_INCOMING: &str =
   r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
 
-$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[0.0,0.0,-1.0],CustomName:"S$(next_station_id)"}
+$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/x/station/incoming_build_all {next_station_id:$(next_station_id),first_switch_coords:"$(first_switch_coords)",first_switch_shape:$(first_switch_shape),motion:$(motion)}"#;
 
-execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/build"#;
+// The first switch the station is connected to could fail to activate when the "build all" cart reverses
+// direction, either because the cart didn't completely leave the detector rail on the way in to the station,
+// or because it's still the same tick as when the detector rail was activated on the way in.
+// So, the first switch is set manually in STATION_INCOMING_BUILD_ALL to the correct direction to the next station on the "build all" route.
 
-const STATION_INCOMING_S: &str =
-  r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
+const STATION_INCOMING_BUILD_ALL: &str =
+  r#"***/build
 
-$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[0.0,0.0,1.0],CustomName:"S$(next_station_id)"}
+$data merge entity @e[type=minecart,distance=..2,limit=1] {CustomName:"S$(next_station_id)",Motion:$(motion)}
 
-execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/build"#;
+$setblock $(first_switch_coords) rail[shape=$(first_switch_shape)]"#;
 
-const STATION_INCOMING_W: &str =
-  r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
-
-$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[-1.0,0.0,0.0],CustomName:"S$(next_station_id)"}
-
-execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/build"#;
-
-const STATION_INCOMING_E: &str =
-  r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
-
-$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run data merge entity @e[type=minecart,distance=..2,limit=1] {Motion:[1.0,0.0,0.0],CustomName:"S$(next_station_id)"}
-
-execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/build"#;
-
-const STATION_OUTGOING_N: &str =
-  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming/n {next_station_id:$(next_station_id)}"}"#;
-
-const STATION_OUTGOING_S: &str =
-  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming/s {next_station_id:$(next_station_id)}"}"#;
-
-const STATION_OUTGOING_W: &str =
-  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming/w {next_station_id:$(next_station_id)}"}"#;
-
-const STATION_OUTGOING_E: &str =
-  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming/e {next_station_id:$(next_station_id)}"}"#;
+const STATION_OUTGOING: &str =
+  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:"$(first_switch_coords)",first_switch_shape:$(first_switch_shape),motion:$(motion)}"}"#;
 
 const STATION_QUICK_SELECT: &str =
   r#"$execute positioned $(x) $(y) $(z) run clone ~ ~ ~ ~ ~ ~ ~ ~1 ~
@@ -114,24 +99,24 @@ const STATION_QUICK_SELECT: &str =
 $execute positioned $(x) $(y) $(z) run ***/select/$(direction)/$(select_fn)"#;
 
 const STATION_LAUNCH_N: &str =
-  r#"$data merge block ~ ~-3 ~-1 {Command:"***/x/station/outgoing/n {next_station_id:$(next_station_id)}"}
+  r#"$data merge block ~ ~-3 ~-1 {Command:"***/x/station/outgoing {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:$(motion)}"}
 
-data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[0.0,0.0,-1.0]}"#;
+$data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:$(motion)}"#;
 
 const STATION_LAUNCH_S: &str =
-  r#"$data merge block ~ ~-3 ~1 {Command:"***/x/station/outgoing/s {next_station_id:$(next_station_id)}"}
+  r#"$data merge block ~ ~-3 ~1 {Command:"***/x/station/outgoing {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:$(motion)}"}
 
-data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[0.0,0.0,1.0]}"#;
+$data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:$(motion)}"#;
 
 const STATION_LAUNCH_W: &str =
-  r#"$data merge block ~-1 ~-3 ~ {Command:"***/x/station/outgoing/w {next_station_id:$(next_station_id)}"}
+  r#"$data merge block ~-1 ~-3 ~ {Command:"***/x/station/outgoing {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:$(motion)}"}
 
-data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[-1.0,0.0,0.0]}"#;
+$data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:$(motion)}"#;
 
 const STATION_LAUNCH_E: &str =
-  r#"$data merge block ~1 ~-3 ~ {Command:"***/x/station/outgoing/e {next_station_id:$(next_station_id)}"}
+  r#"$data merge block ~1 ~-3 ~ {Command:"***/x/station/outgoing {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:$(motion)}"}
 
-data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:[1.0,0.0,0.0]}"#;
+$data merge entity @e[type=minecart,distance=..1.5,limit=1] {Motion:$(motion)}"#;
 
 const STATION_SUMMON_N: &str =
  r#"setblock ~ ~ ~ air
@@ -274,43 +259,18 @@ fn write_fixed_station_functions(out_path: &String) {
   );
 
   create_and_writeln(
-    &format!("{out_path}/x/station/incoming/n.mcfunction"),
-    complete_function_str(STATION_INCOMING_N)
+    &format!("{out_path}/x/station/incoming.mcfunction"),
+    complete_function_str(STATION_INCOMING)
   );
 
   create_and_writeln(
-    &format!("{out_path}/x/station/incoming/s.mcfunction"),
-    complete_function_str(STATION_INCOMING_S)
+    &format!("{out_path}/x/station/incoming_build_all.mcfunction"),
+    complete_function_str(STATION_INCOMING_BUILD_ALL)
   );
 
   create_and_writeln(
-    &format!("{out_path}/x/station/incoming/w.mcfunction"),
-    complete_function_str(STATION_INCOMING_W)
-  );
-
-  create_and_writeln(
-    &format!("{out_path}/x/station/incoming/e.mcfunction"),
-    complete_function_str(STATION_INCOMING_E)
-  );
-
-  create_and_writeln(
-    &format!("{out_path}/x/station/outgoing/n.mcfunction"),
-    complete_function_str(STATION_OUTGOING_N)
-  );
-
-  create_and_writeln(
-    &format!("{out_path}/x/station/outgoing/s.mcfunction"),
-    complete_function_str(STATION_OUTGOING_S)
-  );
-
-  create_and_writeln(
-    &format!("{out_path}/x/station/outgoing/w.mcfunction"),
-    complete_function_str(STATION_OUTGOING_W)
-  );
-
-  create_and_writeln(
-    &format!("{out_path}/x/station/outgoing/e.mcfunction"),
-    complete_function_str(STATION_OUTGOING_E)
+    &format!("{out_path}/x/station/outgoing.mcfunction"),
+    complete_function_str(STATION_OUTGOING)
   );
 
   create_and_writeln(

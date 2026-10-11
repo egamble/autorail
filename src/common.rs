@@ -189,6 +189,21 @@ impl RailData {
       RailData::NE => "ne",
     }
   }
+
+  pub fn to_long_str(&self) -> &str {
+    match &self {
+      RailData::NS => "north_south",
+      RailData::EW => "east_west",
+      RailData::AE => "ascending_east",
+      RailData::AW => "ascending_west",
+      RailData::AN => "ascending_north",
+      RailData::AS => "ascending_south",
+      RailData::SE => "south_east",
+      RailData::SW => "south_west",
+      RailData::NW => "north_west",
+      RailData::NE => "north_east",
+    }
+  }
 }
 
 
@@ -596,4 +611,42 @@ pub fn find_nearest_station_id(coords: BlockCoords, stations: &Vec<Station>) -> 
   }
   
   Some((nearest_station_id, nearest_distance))
+}
+
+
+pub fn get_switch_rail_data(
+  switch: &Switch,
+  from_direction: Direction,
+  to_direction: Direction
+) -> RailData {
+  match from_direction {
+    Direction::N => {
+      match to_direction {
+        Direction::W => RailData::NW,
+        Direction::E => RailData::NE,
+        _ => if switch.has_directions[Direction::W as usize] {RailData::SW} else {RailData::SE}
+      }
+    },
+    Direction::S => {
+      match to_direction {
+        Direction::W => RailData::SW,
+        Direction::E => RailData::SE,
+        _ => if switch.has_directions[Direction::W as usize] {RailData::NW} else {RailData::NE}
+      }
+    },
+    Direction::W => {
+      match to_direction {
+        Direction::N => RailData::NW,
+        Direction::S => RailData::SW,
+        _ => if switch.has_directions[Direction::N as usize] {RailData::NE} else {RailData::SE}
+      }
+    },
+    Direction::E => {
+      match to_direction {
+        Direction::N => RailData::NE,
+        Direction::S => RailData::SE,
+        _ => if switch.has_directions[Direction::N as usize] {RailData::NW} else {RailData::SW}
+      }
+    },
+  }
 }
