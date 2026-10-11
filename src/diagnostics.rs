@@ -91,17 +91,21 @@ fn write_build_all_route(
 ) {
   let mut writer = create_writer(out_path);
 
-  for from_station_id in 0..stations.len() {
-    let from_station = &stations[from_station_id];
+  let num_stations = stations.len();
 
-    let to_station_id = build_all_route[from_station_id];
-    let to_station = &stations[to_station_id];
-    
-    writeln_out(&mut writer, out_path, format!("S{}\tS{}\t{}\t{}",
-                                               from_station_id,
-                                               to_station_id,
-                                               from_station.name,
-                                               to_station.name));
+  let mut route_count = 1;
+  let mut station_id = 0;
+
+  while route_count <= num_stations {
+    let station = &stations[station_id];
+
+    writeln_out(&mut writer, out_path, format!("{}\tS{}\t{}",
+                                               route_count,
+                                               station_id,
+                                               station.name));
+
+    route_count = route_count + 1;
+    station_id = build_all_route[station_id];
   }
 }
 
