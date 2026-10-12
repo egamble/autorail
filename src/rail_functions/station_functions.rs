@@ -27,7 +27,7 @@ fn build_station_body(
 
   let mut body = r#"execute positioned *1* run ***/x/station/build/*2* {next_station_id:*3*,first_switch_coords:*4*,first_switch_shape:*5*}
 
-data merge block *6* {front_text: {has_glowing_text: 1b, messages: [{"text":"*7*","color":"blue"},{"text":"*8*","color":"blue","click_event":{"action":"run_command","command":"***/x/station/name_sign {next_alphabetical_station_id:*9*}"}},{"text":"*10*","color":"blue"},{"text":"","color":"blue"}]}}"#.to_string();
+data merge block *6* {front_text:{allow_op_features:1b,has_glowing_text:1b,messages:[{"text":"*7*","color":"blue"},{"text":"*8*","color":"blue","click_event":{"action":"run_command","command":"***/x/station/name_sign {next_alphabetical_station_id:*9*}"}},{"text":"*10*","color":"blue"},{"text":"","color":"blue"}]}}"#.to_string();
 
   let (x, y, z, _) = station.coords;
 

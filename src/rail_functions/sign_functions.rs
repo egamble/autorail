@@ -68,7 +68,7 @@ fn build_station_sign_body(
   distances: &Vec<i32>,
   num_nodes: usize,
 ) -> String {
-  let mut body = r#"data merge block *1* {front_text: {messages: [{"text":"*2*","color":"dark_blue"},{"text":"*3*","color":"dark_blue","click_event":{"action":"run_command","command":"***/signs/*4*"}},{"text":"*5*","color":"dark_blue"},{"text":"*6*","color":"dark_blue"}]}}"#.to_string();
+  let mut body = r#"data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":"*2*","color":"dark_blue"},{"text":"*3*","color":"dark_blue","click_event":{"action":"run_command","command":"***/signs/*4*"}},{"text":"*5*","color":"dark_blue"},{"text":"*6*","color":"dark_blue"}]}}"#.to_string();
   
   let sign_coords = station_sign.coords;
   let (x, y, z, _) = sign_coords;

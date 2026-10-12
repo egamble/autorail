@@ -15,11 +15,11 @@ const BUILD: &str =
 // E Motion:[1.0,0.0,0.0]
 
 const STATION_BUILD_N: &str =
-  r#"data merge block ~-1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:n}"}},{"text":""},{"text":""}]}}
+  r#"data merge block ~-1 ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:n}"}},{"text":""},{"text":""}]}}
 
-data merge block ~1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
+data merge block ~1 ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/n {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,-1.0]}"}},{"text":""},{"text":""}]}}
+$data merge block ~ ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/n {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,-1.0]}"}},{"text":""},{"text":""}]}}
 
 setblock ~1 ~2 ~ air
 setblock ~-1 ~2 ~ air
@@ -28,11 +28,11 @@ setblock ~ ~-2 ~-1 air
 $setblock ~ ~-2 ~-1 command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,-1.0]}"}"#;
 
 const STATION_BUILD_S: &str =
-  r#"data merge block ~1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"}},{"text":""},{"text":""}]}}
+  r#"data merge block ~1 ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"}},{"text":""},{"text":""}]}}
 
-data merge block ~-1 ~1 ~ {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
+data merge block ~-1 ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/s {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,1.0]}"}},{"text":""},{"text":""}]}}
+$data merge block ~ ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/s {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,1.0]}"}},{"text":""},{"text":""}]}}
 
 setblock ~-1 ~2 ~ air
 setblock ~1 ~2 ~ air
@@ -41,30 +41,30 @@ setblock ~ ~-2 ~1 air
 $setblock ~ ~-2 ~1 command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[0.0,0.0,1.0]}"}"#;
 
 const STATION_BUILD_W: &str =
-  r#"data merge block ~ ~1 ~1 {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"}},{"text":""},{"text":""}]}}
+  r#"data merge block ~ ~1 ~1 {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"}},{"text":""},{"text":""}]}}
 
-data merge block ~ ~1 ~-1 {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
+data merge block ~ ~1 ~-1 {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/w {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[-1.0,0.0,0.0]}"}},{"text":""},{"text":""}]}}
+$data merge block ~ ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/w {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[-1.0,0.0,0.0]}"}},{"text":""},{"text":""}]}}
 
 setblock ~ ~2 ~-1 air
 setblock ~ ~2 ~1 air
 setblock ~-1 ~-2 ~ air
 
-$setblock ~-1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:\"$(first_switch_coords)\",first_switch_shape:$(first_switch_shape),motion:[-1.0,0.0,0.0]}"}"#;
+$setblock ~-1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[-1.0,0.0,0.0]}"}"#;
 
 const STATION_BUILD_E: &str =
-  r#"data merge block ~ ~1 ~-1 {front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"}},{"text":""},{"text":""}]}}
+  r#"data merge block ~ ~1 ~-1 {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","color":"dark_blue","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"}},{"text":""},{"text":""}]}}
 
-data merge block ~ ~1 ~1 {front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
+data merge block ~ ~1 ~1 {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Destroy Carts","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/destroy"}},{"text":""},{"text":""}]}}
 
-$data merge block ~ ~1 ~ {front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/e {next_station_id:$(next_station_id),first_switch_coords:\"$(first_switch_coords)\",first_switch_shape:$(first_switch_shape),motion:[1.0,0.0,0.0]}"}},{"text":""},{"text":""}]}}
+$data merge block ~ ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Launch Cart","color":"dark_blue","click_event":{"action":"run_command","command":"***/x/station/launch/e {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[1.0,0.0,0.0]}"}},{"text":""},{"text":""}]}}
 
 setblock ~ ~2 ~1 air
 setblock ~ ~2 ~-1 air
 setblock ~1 ~-2 ~ air
 
-$setblock ~1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:\"$(first_switch_coords)\",first_switch_shape:$(first_switch_shape),motion:[1.0,0.0,0.0]}"}"#;
+$setblock ~1 ~-2 ~ command_block[facing=down]{Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:[1.0,0.0,0.0]}"}"#;
 
 const STATION_NAME_SIGN: &str =
    "***/build
@@ -76,7 +76,7 @@ const STATION_DESTROY: &str =
 const STATION_INCOMING: &str =
   r#"kill @e[type=minecart,name=!"NoKill",nbt=!{Glowing:1b},distance=..2]
 
-$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/x/station/incoming_build_all {next_station_id:$(next_station_id),first_switch_coords:"$(first_switch_coords)",first_switch_shape:$(first_switch_shape),motion:$(motion)}"#;
+$execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2] run ***/x/station/incoming_build_all {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:$(motion)}"#;
 
 // The first switch the station is connected to could fail to activate when the "build all" cart reverses
 // direction, either because the cart didn't completely leave the detector rail on the way in to the station,
@@ -91,7 +91,7 @@ $data merge entity @e[type=minecart,distance=..2,limit=1] {CustomName:"S$(next_s
 $setblock $(first_switch_coords) rail[shape=$(first_switch_shape)]"#;
 
 const STATION_OUTGOING: &str =
-  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:"$(first_switch_coords)",first_switch_shape:$(first_switch_shape),motion:$(motion)}"}"#;
+  r#"$data merge block ~ ~ ~ {Command:"***/x/station/incoming {next_station_id:$(next_station_id),first_switch_coords:'$(first_switch_coords)',first_switch_shape:$(first_switch_shape),motion:$(motion)}"}"#;
 
 const STATION_QUICK_SELECT: &str =
   r#"$execute positioned $(x) $(y) $(z) run clone ~ ~ ~ ~ ~ ~ ~ ~1 ~
@@ -122,7 +122,7 @@ const STATION_SUMMON_N: &str =
  r#"setblock ~ ~ ~ air
 setblock ~2 ~ ~ air
 
-data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:n}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+data merge block ~ ~-1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:n}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~1 ~-0.5 ~ {CustomName:"S$(station_id)"}"#;
 
@@ -130,7 +130,7 @@ const STATION_SUMMON_S: &str =
   r#"setblock ~ ~ ~ air
 setblock ~-2 ~ ~ air
 
-data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+data merge block ~ ~-1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~-1 ~-0.5 ~ {CustomName:"S$(station_id)"}"#;
 
@@ -138,7 +138,7 @@ const STATION_SUMMON_W: &str =
   r#"setblock ~ ~ ~ air
 setblock ~ ~ ~-2 air
 
-data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+data merge block ~ ~-1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~ ~-0.5 ~-1 {CustomName:"S$(station_id)"}"#;
 
@@ -146,7 +146,7 @@ const STATION_SUMMON_E: &str =
   r#"setblock ~ ~ ~ air
 setblock ~ ~ ~2 air
 
-data merge block ~ ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+data merge block ~ ~-1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $summon minecart ~ ~-0.5 ~1 {CustomName:"S$(station_id)"}"#;
 
@@ -157,7 +157,7 @@ const STATION_TELEPORT_N: &str =
   r#"setblock ~ ~ ~ air
 setblock ~-2 ~ ~ air
 
-data merge block ~-2 ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:n}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+data merge block ~-2 ~-1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:n}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $***/x/teleport/s$(station_id) {elevation:0}"#;
 
@@ -165,7 +165,7 @@ const STATION_TELEPORT_S: &str =
   r#"setblock ~ ~ ~ air
 setblock ~2 ~ ~ air
 
-data merge block ~2 ~-1 ~ {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+data merge block ~2 ~-1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:s}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $***/x/teleport/s$(station_id) {elevation:0}"#;
 
@@ -173,7 +173,7 @@ const STATION_TELEPORT_W: &str =
   r#"setblock ~ ~ ~ air
 setblock ~ ~ ~2 air
 
-data merge block ~ ~-1 ~2 {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+data merge block ~ ~-1 ~2 {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:w}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $***/x/teleport/s$(station_id) {elevation:0}"#;
 
@@ -181,7 +181,7 @@ const STATION_TELEPORT_E: &str =
   r#"setblock ~ ~ ~ air
 setblock ~ ~ ~-2 air
 
-data merge block ~ ~-1 ~-2 {front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+data merge block ~ ~-1 ~-2 {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Select Station","click_event":{"action":"run_command","command":"***/select/_start {direction:e}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 $***/x/teleport/s$(station_id) {elevation:0}"#;
 
