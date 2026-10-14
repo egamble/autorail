@@ -20,10 +20,12 @@ fn switch_body(
   distances: &Vec<i32>,
   num_nodes: usize,
 ) -> String {
-  let mut body = r#"execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2.5] run ***/build
+  let mut body = r#"execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2.5] run ***/x/switch/build_all {switch_id:*1*}
 
 "#.to_string();
 
+  body = body.replace("*1*", format!("{}", switch_id).as_str());
+  
   let mut shortest_directions: Vec<Direction> = Vec::new();
   let mut num_shortest_directions: Vec<i32> = vec![0; 4];
 

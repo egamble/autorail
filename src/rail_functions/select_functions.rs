@@ -25,7 +25,7 @@ fn write_start_function(stations: &Vec<Station>, out_path: &String) {
 
 data merge block ~ ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":""},{"text":""},{"text":""}]}}
 
-$***/select/$(direction)/*1*_a"#.to_string();
+$***/select/$(direction)/*1*_a {curr_station_id:$(curr_station_id),next_station_id:$(next_station_id)}"#.to_string();
 
   let num_stations = stations.len();
 
@@ -75,7 +75,7 @@ fn write_single_select_functions(
   let direction_str = direction.to_str();
 
   let mut line_1 =
-    r#"data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":"*2*","color":"dark_blue"},{"text":"*3*","click_event":{"action":"run_command","command":"***/x/station/summon/*4* {station_id:*5*}"},"color":"dark_blue"},{"text":"*6*","color":"dark_blue"},{"text":""}]}}
+    r#"$data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":"*2*","color":"dark_blue"},{"text":"*3*","click_event":{"action":"run_command","command":"***/x/station/summon/*4* {station_id:*5*,curr_station_id:$(curr_station_id),next_station_id:$(next_station_id)}"},"color":"dark_blue"},{"text":"*6*","color":"dark_blue"},{"text":""}]}}
 
 "#.to_string();
 
@@ -91,7 +91,7 @@ fn write_single_select_functions(
   line_1 = line_1.replace("*6*", row_3.as_str());
 
   let mut line_2 =
-    r#"data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","command":"***/select/*2*/*3*"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+    r#"$data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","command":"***/select/*2*/*3* {curr_station_id:$(curr_station_id),next_station_id:$(next_station_id)}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 "#.to_string();
 
@@ -99,7 +99,9 @@ fn write_single_select_functions(
 
   let (next_begin, next_end) = next_range;
 
-  let range_str = if next_begin == next_end {
+  let range_str = if next_begin == usize::MAX {
+    format!("build_all")
+  } else if next_begin == next_end {
     format!("s{}_a", next_begin)
   } else {
     format!("s{}_s{}_a", next_begin, next_end)
@@ -119,7 +121,7 @@ fn write_single_select_functions(
   line_3 = line_3.replace("*1*", coords_3.as_str());
 
   let mut line_4 =
-    r#"data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Teleport","click_event":{"action":"run_command","command":"***/x/station/teleport/*2* {station_id:*3*}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+    r#"$data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Teleport","click_event":{"action":"run_command","command":"***/x/station/teleport/*2* {station_id:*3*,curr_station_id:$(curr_station_id),next_station_id:$(next_station_id)}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 "#.to_string();
 
   line_4 = line_4.replace("*1*", coords_3.as_str());
@@ -151,7 +153,7 @@ fn write_multiple_select_functions(
   let direction_str = direction.to_str();
 
   let mut line_1 =
-    r#"data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"*2*","click_event":{"action":"run_command","command":"***/select/*3*/*4*"},"color":"dark_blue"},{"text":"-","color":"dark_blue"},{"text":"*5*","color":"dark_blue"}]}}
+    r#"$data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"*2*","click_event":{"action":"run_command","command":"***/select/*3*/*4* {curr_station_id:$(curr_station_id),next_station_id:$(next_station_id)}"},"color":"dark_blue"},{"text":"-","color":"dark_blue"},{"text":"*5*","color":"dark_blue"}]}}
 
 "#.to_string();
 
@@ -179,7 +181,7 @@ fn write_multiple_select_functions(
   line_1 = line_1.replace("*5*", station_name_2.as_str());
 
   let mut line_2 =
-    r#"data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","command":"***/select/*2*/*3*"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+    r#"$data merge block *1* {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","command":"***/select/*2*/*3* {curr_station_id:$(curr_station_id),next_station_id:$(next_station_id)}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
 
 "#.to_string();
 
@@ -187,7 +189,9 @@ fn write_multiple_select_functions(
 
   let (next_begin, next_end) = next_range;
 
-  let range_str = if next_begin == next_end {
+  let range_str = if next_begin == usize::MAX {
+    format!("build_all")
+  } else if next_begin == next_end {
     format!("s{}_a", next_begin)
   } else {
     format!("s{}_s{}_a", next_begin, next_end)
@@ -220,6 +224,50 @@ fn write_multiple_select_functions(
 }
 
 
+fn write_select_build_all(
+  next_range: (usize, usize),
+  out_path: &String
+) {
+  for direction_index in 0..4 {
+    let direction = Direction::from_index(direction_index);
+    let direction_str = direction.to_str();
+
+    let mut line_1 =
+      r#"$data merge block ~ ~1 ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Build All","click_event":{"action":"run_command","command":"***/x/station/summon/build_all/*1* {curr_station_id:$(curr_station_id),next_station_id:$(next_station_id)}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+
+"#.to_string();
+
+  line_1 = line_1.replace("*1*", direction_str);
+
+  let mut line_2 =
+    r#"$data merge block ~ ~ ~ {allow_op_features:1b,front_text: {messages: [{"text":""},{"text":"Next Selection","click_event":{"action":"run_command","command":"***/select/*2*/*3* {curr_station_id:$(curr_station_id),next_station_id:$(next_station_id)}"},"color":"dark_blue"},{"text":""},{"text":""}]}}
+
+"#.to_string();
+
+  let (next_begin, next_end) = next_range;
+
+  let range_str = if next_begin == next_end {
+    format!("s{}_a", next_begin)
+  } else {
+    format!("s{}_s{}_a", next_begin, next_end)
+  };
+  
+  line_2 = line_2.replace("*2*", direction_str);
+  line_2 = line_2.replace("*3*", range_str.as_str());
+  
+  let body = format!("{line_1}{line_2}");
+
+  create_and_write(
+    &format!("{}/select/{}/build_all.mcfunction",
+             out_path,
+             direction_str
+    ),
+    complete_function(body)
+  );
+  }
+}
+
+
 fn write_select_range(
   stations: &Vec<Station>,
   range: (usize, usize),
@@ -241,12 +289,17 @@ fn write_select_range(
   }
 
   if begin != end {
-    write_select_ranges(stations, range, out_path);
+    write_select_ranges(stations, range, false, out_path);
   }
 }
 
 
-fn write_select_ranges(stations: &Vec<Station>, parent_range: (usize, usize), out_path: &String) {
+fn write_select_ranges(
+  stations: &Vec<Station>,
+  parent_range: (usize, usize),
+  add_build_all: bool,
+  out_path: &String
+) {
   let (parent_begin, parent_end) = parent_range;
 
   let subrange_len = get_subrange_len(parent_end - parent_begin + 1);
@@ -275,7 +328,12 @@ fn write_select_ranges(stations: &Vec<Station>, parent_range: (usize, usize), ou
     write_select_range(stations, subranges[i], subranges[i + 1], out_path);
   }
 
-  write_select_range(stations, subranges[num_subranges - 1], subranges[0], out_path);
+  if add_build_all {
+    write_select_range(stations, subranges[num_subranges - 1], (usize::MAX, usize::MAX), out_path);
+    write_select_build_all(subranges[0], out_path);
+  } else {
+    write_select_range(stations, subranges[num_subranges - 1], subranges[0], out_path);
+  }
 }
 
 
@@ -329,7 +387,7 @@ pub fn write_select_functions(stations: &Vec<Station>, out_path: &String) {
 
   write_start_function(stations, out_path);
 
-  write_select_ranges(stations, (0, stations.len() - 1), out_path);
+  write_select_ranges(stations, (0, stations.len() - 1), true, out_path);
 
   write_teleport_functions(stations, out_path);
 }

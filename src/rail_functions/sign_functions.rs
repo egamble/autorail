@@ -22,6 +22,8 @@ fn station_sign_body(
   let belongs_to_station = &stations[belongs_to_station_id];
   let (x, y, z, _) = belongs_to_station.coords;
 
+  let next_station_id = build_all_route[belongs_to_station_id];
+
   if station_sign.nearest_num == 0 {
     let mut body = r#"***/x/station/summon_build_all {*1*}"#.to_string();
 
@@ -29,12 +31,12 @@ fn station_sign_body(
                                        x,
                                        (y as f64) + 0.5,
                                        z,
-                                       build_all_route[belongs_to_station_id]).as_str());
+                                       next_station_id).as_str());
 
     return body;
   }
   
-  let mut body = r#"***/x/station/quick_select {*1*,direction:*2*,select_fn:*3*}"#.to_string();
+  let mut body = r#"***/x/station/quick_select {*1*,direction:*2*,select_fn:*3*,curr_station_id:*4*,next_station_id:*5*}"#.to_string();
 
   let mut x_offset = 0;
   let mut z_offset = 0;
@@ -54,9 +56,13 @@ fn station_sign_body(
     },
   }
 
+  // TODO: make this consistent with the summon_build_all line
+  
   body = body.replace("*1*", format!("x:{},y:{},z:{}", x + x_offset, y + 1, z + z_offset).as_str());
   body = body.replace("*2*", belongs_to_station.direction.to_str());
   body = body.replace("*3*", format!("s{}_a", station_sign.refers_to_station_id).as_str());
+  body = body.replace("*4*", format!("{}", belongs_to_station_id).as_str());
+  body = body.replace("*5*", format!("{}", next_station_id).as_str());
 
   body
 }
@@ -75,12 +81,11 @@ fn build_station_sign_body(
 
   let mut row_1 = EMPTY;
   let row_2;
-  let row_3;
+  let mut row_3 = EMPTY;
   let mut row_4 = EMPTY;
 
   if station_sign.nearest_num == 0 {
-    row_2 = "Summon Build All".to_string();
-    row_3 = "Cart".to_string();
+    row_2 = "Build All".to_string();
     row_4 = "N0".to_string();
   } else {
     let refers_to_station = &stations[station_sign.refers_to_station_id];
