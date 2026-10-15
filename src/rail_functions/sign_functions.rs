@@ -36,7 +36,7 @@ fn station_sign_body(
     return body;
   }
   
-  let mut body = r#"***/x/station/quick_select {*1*,direction:*2*,select_fn:*3*,curr_station_id:*4*,next_station_id:*5*}"#.to_string();
+  let mut body = r#"***/x/station/quick_select {*1*}"#.to_string();
 
   let mut x_offset = 0;
   let mut z_offset = 0;
@@ -56,13 +56,15 @@ fn station_sign_body(
     },
   }
 
-  // TODO: make this consistent with the summon_build_all line
-  
-  body = body.replace("*1*", format!("x:{},y:{},z:{}", x + x_offset, y + 1, z + z_offset).as_str());
-  body = body.replace("*2*", belongs_to_station.direction.to_str());
-  body = body.replace("*3*", format!("s{}_a", station_sign.refers_to_station_id).as_str());
-  body = body.replace("*4*", format!("{}", belongs_to_station_id).as_str());
-  body = body.replace("*5*", format!("{}", next_station_id).as_str());
+  body = body.replace("*1*", format!("x:{},y:{},z:{},direction:{},select_fn:s{}_a,curr_station_id:{},curr_station_name:'{}',next_station_id:{}",
+                                     x + x_offset,
+                                     y + 1,
+                                     z + z_offset,
+                                     belongs_to_station.direction.to_str(),
+                                     station_sign.refers_to_station_id,
+                                     belongs_to_station_id,
+                                     belongs_to_station.name,
+                                     next_station_id).as_str());
 
   body
 }

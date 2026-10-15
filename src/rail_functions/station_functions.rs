@@ -25,9 +25,9 @@ fn build_station_body(
   let num_switches = switches.len();
   let num_nodes = num_stations + 4 * num_switches;
 
-  let mut body = r#"execute positioned *1* run ***/x/station/build/*2* {curr_station_id:*3*,next_station_id:*4*,first_switch_coords:*5*,first_switch_shape:*6*}
+  let mut body = r#"execute positioned *1* run ***/x/station/build/*2* {curr_station_id:*3*,curr_station_name:*4*,next_station_id:*5*,first_switch_coords:*6*,first_switch_shape:*7*}
 
-data merge block *7* {front_text:{allow_op_features:1b,has_glowing_text:1b,messages:[{"text":"*8*","color":"blue"},{"text":"*9*","color":"blue","click_event":{"action":"run_command","command":"***/x/station/name_sign {next_alphabetical_station_id:*10*}"}},{"text":"*11*","color":"blue"},{"text":"","color":"blue"}]}}"#.to_string();
+data merge block *8* {front_text:{allow_op_features:1b,has_glowing_text:1b,messages:[{"text":"*9*","color":"blue"},{"text":"*10*","color":"blue","click_event":{"action":"run_command","command":"***/x/station/name_sign {next_alphabetical_station_id:*11*}"}},{"text":"*12*","color":"blue"},{"text":"","color":"blue"}]}}"#.to_string();
 
   let (x, y, z, _) = station.coords;
 
@@ -90,14 +90,15 @@ data merge block *7* {front_text:{allow_op_features:1b,has_glowing_text:1b,messa
   body = body.replace("*1*", format!("{} {} {}", x, y, z).as_str());
   body = body.replace("*2*", station.direction.to_str());
   body = body.replace("*3*", format!("{}", station_id).as_str());
-  body = body.replace("*4*", format!("{}", next_station_id).as_str());
-  body = body.replace("*5*", format!("'{} {} {}'", switch_x, switch_y, switch_z).as_str());
-  body = body.replace("*6*", format!("{}", first_switch_rail_data.to_long_str()).as_str());
-  body = body.replace("*7*", format!("{} {} {}", x, y + 2, z).as_str());
-  body = body.replace("*8*", row_1.as_str());
-  body = body.replace("*9*", row_2.as_str());
-  body = body.replace("*10*", format!("{}", next_alphabetical_station_id).as_str());
-  body = body.replace("*11*", row_3.as_str());
+  body = body.replace("*4*", format!("'{}'", station.name).as_str());
+  body = body.replace("*5*", format!("{}", next_station_id).as_str());
+  body = body.replace("*6*", format!("'{} {} {}'", switch_x, switch_y, switch_z).as_str());
+  body = body.replace("*7*", format!("{}", first_switch_rail_data.to_long_str()).as_str());
+  body = body.replace("*8*", format!("{} {} {}", x, y + 2, z).as_str());
+  body = body.replace("*9*", row_1.as_str());
+  body = body.replace("*10*", row_2.as_str());
+  body = body.replace("*11*", format!("{}", next_alphabetical_station_id).as_str());
+  body = body.replace("*12*", row_3.as_str());
 
   body
 }

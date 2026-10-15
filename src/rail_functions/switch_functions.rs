@@ -15,16 +15,19 @@ use crate::common::{
 fn switch_body(
   switch: &Switch,
   switch_id: usize,
+  switch_port_name: &String,
   from_direction: Direction,
   num_stations: usize,
   distances: &Vec<i32>,
   num_nodes: usize,
 ) -> String {
-  let mut body = r#"execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2.5] run ***/x/switch/build_all {switch_id:*1*}
+  let mut body = r#"execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2.5] run ***/x/switch/build_all {*1*}
 
 "#.to_string();
 
-  body = body.replace("*1*", format!("{}", switch_id).as_str());
+  body = body.replace("*1*", format!("switch_id:{},switch_port_name:'{}'",
+                                     switch_id,
+                                     switch_port_name).as_str());
   
   let mut shortest_directions: Vec<Direction> = Vec::new();
   let mut num_shortest_directions: Vec<i32> = vec![0; 4];
@@ -120,7 +123,8 @@ fn switch_body(
 
 fn add_build_switches_body(
   switch: &Switch,
-  direction: Direction
+  switch_port_name: &String,
+  direction: Direction,
 ) -> String {
   let mut body = r#"execute in *1* run setblock *2* air
 execute in *1* run setblock *2* command_block[facing=down]{Command:"***/switches/*3*"}
@@ -149,9 +153,7 @@ execute in *1* run setblock *2* command_block[facing=down]{Command:"***/switches
 
   body = body.replace("*1*", realm_to_command_realm(realm).as_str());
   body = body.replace("*2*", format!("{} {} {}", x + x_offset, y - 2, z + z_offset).as_str());
-  body = body.replace("*3*", format!("{}_{}",
-                                     block_coords_to_file_name(switch_coords),
-                                     direction.to_str()).as_str());
+  body = body.replace("*3*", format!("{}", switch_port_name).as_str());
   
   body
 }
@@ -178,22 +180,28 @@ pub fn write_switch_functions(
       if switch.has_directions[direction_index] {
         let direction = Direction::from_index(direction_index);
 
+        let switch_port_name =  &format!("{}_{}",
+                                         block_coords_to_file_name(switch.coords),
+                                         direction.to_str()
+                                         );
+        
         build_switches_body.push_str(
           add_build_switches_body(
             switch,
+            switch_port_name,
             direction
           ).as_str()
         );
 
         create_and_write(
-          &format!("{}/switches/{}_{}.mcfunction",
+          &format!("{}/switches/{}.mcfunction",
                    out_path,
-                   block_coords_to_file_name(switch.coords),
-                   direction.to_str()
+                   switch_port_name,
           ),
           complete_function(
             switch_body(switch,
                         switch_id,
+                        switch_port_name,
                         direction,
                         num_stations,
                         distances,
