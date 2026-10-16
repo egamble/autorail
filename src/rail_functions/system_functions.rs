@@ -12,6 +12,7 @@ pub fn write_system_functions(
   distances: &Vec<i32>,
   bidirectional_graph: &Vec<usize>,
   build_all_route: &Vec<usize>,
+  switch_extra: &String,
   out_path: &String
 ) {
   write_station_functions(
@@ -34,6 +35,7 @@ pub fn write_system_functions(
     switches,
     stations.len(),
     distances,
+    switch_extra,
     out_path
   );
 }

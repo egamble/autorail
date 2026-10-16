@@ -655,3 +655,8 @@ pub fn get_switch_rail_data(
     },
   }
 }
+
+
+pub fn remove_comment(s: &String) -> &str {
+  s.split_once('#').map_or(s, |(before, _)| before)
+}

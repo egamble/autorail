@@ -6,6 +6,7 @@ mod blocks;
 mod rail_system;
 mod rail_functions;
 
+use std::fs::{read_to_string};
 use std::collections::{HashMap};
 
 use crate::common::{
@@ -22,7 +23,7 @@ use crate::diagnostics::{write_diagnostics};
 
 use crate::in_files::{
   build_ties_map,
-  build_weights_map
+  build_weights_map,
 };
 
 use crate::blocks::find_blocks::{find_blocks};
@@ -49,6 +50,7 @@ fn main() {
     diagnostics_out_path_option,
     ties_path_option,
     weights_path_option,
+    switch_extra_path_option
   ) = parse_args(&args);
 
   let starting_chunk_coords = block_coords_to_chunk_coords((
@@ -73,6 +75,14 @@ fn main() {
       build_weights_map(&weights_path)
     } else {
       HashMap::new()
+    };
+
+    let switch_extra: String =
+    if let Some(switch_extra_path) = switch_extra_path_option {
+      println!("Reading from switch extra file {:?}", switch_extra_path);
+      read_to_string(switch_extra_path).expect("switch extra")
+    } else {
+      "".to_string()
     };
 
 
@@ -143,6 +153,7 @@ fn main() {
     &distances,
     &bidirectional_graph,
     &build_all_route,
+    &switch_extra,
     &functions_out_path
   );
   
@@ -200,7 +211,8 @@ fn parse_args(args: &Vec<String>) -> (
   String, // functions_out_path
   Option<String>, // diagnostics_out_path_option,
   Option<String>, // ties_path_option
-  Option<String>  // weights_path_option
+  Option<String>, // weights_path_option
+  Option<String>  // switch_extra_path_option
 ) {
   if args.len() >= 3 {
     let block_x_str = &args[1];
@@ -212,6 +224,7 @@ fn parse_args(args: &Vec<String>) -> (
         let diagnostics_out_path_option = param_from_args(args, "-d");
         let ties_path_option = param_from_args(args, "-t");
         let weights_path_option = param_from_args(args, "-w");
+        let switch_extra_path_option = param_from_args(args, "-s");
 
         return (
           block_x_str.to_string(),
@@ -220,12 +233,13 @@ fn parse_args(args: &Vec<String>) -> (
           functions_out_path,
           diagnostics_out_path_option,
           ties_path_option,
-          weights_path_option
+          weights_path_option,
+          switch_extra_path_option
         );
       }
     }
   }
 
   let command = &args[0];
-  exit!("Usage: {} <block_x> <block_z> -i <world_dir> -o <functions_out_path> [-d <diagnostics_out_path>] [-t <ties_path>] [-w <weights_path>]", command);
+  exit!("Usage: {} <block_x> <block_z> -i <world_dir> -o <functions_out_path> [-d <diagnostics_out_path>] [-t <ties_path>] [-w <weights_path>] [-s <switch_extra_path>]", command);
 }

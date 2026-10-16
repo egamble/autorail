@@ -9,7 +9,8 @@ use crate::common::{
   i32_from_str,
   coord_from_str,
   realm_from_str,
-  create_reader
+  create_reader,
+  remove_comment
 };
 
 
@@ -22,7 +23,7 @@ pub fn build_ties_map(ties_path: &String) ->
 
   for line_result in reader.lines() {
     if let Ok(mut line) = line_result {
-      line = line.trim().to_string();
+      line = remove_comment(&line).trim().to_string();
       
       if line != "" {
         let split: Vec<&str> = line.split("\t").collect();
@@ -80,7 +81,7 @@ pub fn build_weights_map(weights_path: &String) -> HashMap<BlockCoords, i32> {
 
   for line_result in reader.lines() {
     if let Ok(line) = line_result {
-      let split: Vec<&str> = line.split("\t").collect();
+      let split: Vec<&str> = remove_comment(&line).trim().split("\t").collect();
 
       match split[..] {
         [

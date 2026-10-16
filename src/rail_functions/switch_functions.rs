@@ -20,6 +20,7 @@ fn switch_body(
   num_stations: usize,
   distances: &Vec<i32>,
   num_nodes: usize,
+  switch_extra: &String,
 ) -> String {
   let mut body = r#"execute if entity @e[type=minecart,nbt={Glowing:1b},distance=..2.5] run ***/x/switch/build_all {*1*}
 
@@ -116,6 +117,8 @@ fn switch_body(
       body.push_str(body_line.as_str());
     }
   }
+
+  body.push_str(format!("\n{}", switch_extra).as_str());
   
   body
 }
@@ -168,6 +171,7 @@ pub fn write_switch_functions(
   switches: &Vec<Switch>,
   num_stations: usize,
   distances: &Vec<i32>,
+  switch_extra: &String,
   out_path: &String
 ) {
   let num_nodes = get_num_nodes(distances);
@@ -206,6 +210,7 @@ pub fn write_switch_functions(
                         num_stations,
                         distances,
                         num_nodes,
+                        switch_extra,
             )
           )
         );
